@@ -1,7 +1,6 @@
 package pathx
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -10,8 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-
-	"casher-server/internal/configs"
 )
 
 func FileIsExisted(filename string) bool {
@@ -59,12 +56,6 @@ func GetCurrentAbPathByCaller() string {
 		abPath = path.Dir(filename)
 	}
 	return abPath
-}
-
-func GetExecName(flagSet *flag.FlagSet) string {
-	args := configs.ReArgs(flagSet)
-	_, fileName := filepath.Split(args[0])
-	return fileName
 }
 
 func Copy(srcFile, destFile string) (int64, error) {

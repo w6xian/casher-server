@@ -17,7 +17,7 @@ type DefaultOperator struct {
 
 // rpc call logic layer
 func (o *DefaultOperator) Connect(conn *proto.ConnectRequest) (uid int, err error) {
-	return 0, nil
+	return 1024, nil
 }
 
 // rpc call logic layer
