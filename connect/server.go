@@ -125,6 +125,11 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		if message == nil {
 			return
 		}
+		if ch.userId > 0 {
+			// 已登录过后，可以互动消息
+			s.operator.HandleMessage(ch, message)
+			return
+		}
 		var connReq *proto.ConnectRequest
 		logrus.Infof("get a message :%s", message)
 		if err := json.Unmarshal([]byte(message), &connReq); err != nil {
