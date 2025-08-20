@@ -6,7 +6,8 @@
 package rpc
 
 import (
-	"casher-server/config"
+	"casher-server/internal/config"
+
 	"casher-server/proto"
 	"context"
 	"sync"

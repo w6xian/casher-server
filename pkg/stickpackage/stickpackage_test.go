@@ -7,7 +7,8 @@ package stickpackage
 import (
 	"bufio"
 	"bytes"
-	"casher-server/config"
+	"casher-server/internal/config"
+
 	"casher-server/proto"
 	"encoding/binary"
 	"encoding/json"

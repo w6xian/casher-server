@@ -5,10 +5,17 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
+	"casher-server/internal/config"
+
 	"github.com/kardianos/service"
+	"go.elastic.co/ecszap"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
@@ -32,6 +39,7 @@ type Deamon struct {
 	Context context.Context
 	FlagSet *flag.FlagSet
 	pool    []*exec.Cmd
+	Profile *config.Profile
 }
 
 func (p *Deamon) Start(s service.Service) error {
@@ -41,7 +49,44 @@ func (p *Deamon) Start(s service.Service) error {
 }
 
 func (p *Deamon) run(s service.Service) {
-	connect.New(s).Run()
+	// 初始化日志
+	p.initConfig()
+	// 日志
+	optsLog := p.Profile.Logger
+	hook := &lumberjack.Logger{
+		Filename:   optsLog.FilePath + optsLog.Filename,
+		MaxSize:    optsLog.MaxSize, // megabytes
+		MaxBackups: optsLog.MaxBackups,
+		MaxAge:     optsLog.MaxAge,   //days
+		Compress:   optsLog.Compress, // disabled by default
+		LocalTime:  optsLog.LocalTime,
+	}
+	defer hook.Close()
+
+	encoderConfig := ecszap.EncoderConfig{
+		EncodeName:     zapcore.FullNameEncoder,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeDuration: zapcore.MillisDurationEncoder,
+		EncodeCaller:   ecszap.FullCallerEncoder,
+	}
+
+	syncer := []zapcore.WriteSyncer{
+		zapcore.AddSync(hook),
+	}
+	if optsLog.Stdout {
+		syncer = append(syncer, zapcore.AddSync(os.Stdout))
+	}
+
+	core := ecszap.NewCore(encoderConfig,
+		// zapcore.AddSync(hook),
+		zapcore.NewMultiWriteSyncer(syncer...),
+		zap.InfoLevel)
+	logger := zap.New(core, zap.AddCaller())
+	defer logger.Sync()
+
+	//初始化加入对应的
+	connect.New(p.Context, p.Profile, logger).Run()
+
 }
 
 func (p *Deamon) Stop(s service.Service) error {
@@ -54,4 +99,15 @@ func (p *Deamon) Stop(s service.Service) error {
 	}
 	s.Stop()
 	return nil
+}
+
+func (h *Deamon) initConfig() {
+	h.FlagSet.String("config", "conf.toml", "path to config file")
+	configFile := h.FlagSet.Lookup("config").Value.String()
+	// 文件里读取配置
+	err := h.Profile.FromFile(configFile, config.TOML)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(0)
+	}
 }

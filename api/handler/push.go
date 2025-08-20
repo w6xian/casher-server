@@ -7,7 +7,8 @@ package handler
 
 import (
 	"casher-server/api/rpc"
-	"casher-server/config"
+	"casher-server/internal/config"
+
 	"casher-server/proto"
 	"casher-server/tools"
 	"strconv"

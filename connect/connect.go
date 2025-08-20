@@ -6,27 +6,30 @@
 package connect
 
 import (
-	"casher-server/config"
+	"casher-server/internal/config"
+	"casher-server/internal/utils/id"
+	"context"
+
 	"fmt"
 	_ "net/http/pprof"
 	"runtime"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/kardianos/service"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 var DefaultServer *Server
 
 type Connect struct {
 	ServerId string
-	Service  service.Service
+	Lager    *zap.Logger
+	Profile  *config.Profile
 }
 
-func New(s service.Service) *Connect {
+func New(ctx context.Context, profile *config.Profile, lager *zap.Logger) *Connect {
+
 	svr := new(Connect)
-	svr.Service = s
+	svr.Profile = profile
+	svr.Lager = lager
 	return svr
 }
 
@@ -48,19 +51,13 @@ func (c *Connect) Run() {
 		})
 	}
 	operator := new(DefaultOperator)
-	DefaultServer = NewServer(Buckets, operator, ServerOptions{
-		WriteWait:       10 * time.Second,
-		PongWait:        60 * time.Second,
-		PingPeriod:      54 * time.Second,
-		MaxMessageSize:  512,
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		BroadcastSize:   512,
-	})
-	c.ServerId = fmt.Sprintf("%s-%s", "ws", uuid.New().String())
+	DefaultServer = NewServer(Buckets, operator, c.Profile, c.Lager)
+	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
+	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))
 
 	//start Connect layer server handler persistent connection
 	if err := c.InitWebsocket(); err != nil {
-		logrus.Panicf("Connect layer InitWebsocket() error:  %s \n", err.Error())
+		c.Lager.Panic("Connect layer InitWebsocket() error", zap.Error(err))
+		panic("Connect layer InitWebsocket() error")
 	}
 }
