@@ -15,6 +15,8 @@ import (
 	"runtime"
 
 	"go.uber.org/zap"
+
+	"modernc.org/mathutil"
 )
 
 var DefaultServer *Server
@@ -26,23 +28,23 @@ type Connect struct {
 }
 
 func New(ctx context.Context, profile *config.Profile, lager *zap.Logger) *Connect {
-
 	svr := new(Connect)
 	svr.Profile = profile
 	svr.Lager = lager
 	return svr
 }
 
-func (c *Connect) Run() {
+func (c *Connect) Server() {
 	// get Connect layer config
-	connectConfig := config.Conf.Connect
-
+	connectConfig := c.Profile.Connect
 	//set the maximum number of CPUs that can be executing
 	runtime.GOMAXPROCS(connectConfig.ConnectBucket.CpuNum)
 
+	bsNum := mathutil.Max(connectConfig.ConnectBucket.CpuNum, 1)
+	bsNum = mathutil.Min(bsNum, runtime.NumCPU())
 	//init Connect layer rpc server, logic client will call this
-	Buckets := make([]*Bucket, connectConfig.ConnectBucket.CpuNum)
-	for i := 0; i < connectConfig.ConnectBucket.CpuNum; i++ {
+	Buckets := make([]*Bucket, bsNum)
+	for i := 0; i < bsNum; i++ {
 		Buckets[i] = NewBucket(BucketOptions{
 			ChannelSize:   connectConfig.ConnectBucket.Channel,
 			RoomSize:      connectConfig.ConnectBucket.Room,
@@ -54,7 +56,6 @@ func (c *Connect) Run() {
 	DefaultServer = NewServer(Buckets, operator, c.Profile, c.Lager)
 	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
 	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))
-
 	//start Connect layer server handler persistent connection
 	if err := c.InitWebsocket(); err != nil {
 		c.Lager.Panic("Connect layer InitWebsocket() error", zap.Error(err))

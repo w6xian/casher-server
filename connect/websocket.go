@@ -6,23 +6,20 @@
 package connect
 
 import (
-	"casher-server/internal/config"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 )
 
 func (c *Connect) InitWebsocket() error {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		c.serveWs(DefaultServer, w, r)
 	})
-	err := http.ListenAndServe(config.Conf.Connect.ConnectWebsocket.Bind, nil)
-	return err
+	return nil
 }
 
 func (c *Connect) serveWs(server *Server, w http.ResponseWriter, r *http.Request) {
-
 	var upGrader = websocket.Upgrader{
 		ReadBufferSize:  server.Profile.Server.ReadBufferSize,
 		WriteBufferSize: server.Profile.Server.WriteBufferSize,
@@ -33,7 +30,7 @@ func (c *Connect) serveWs(server *Server, w http.ResponseWriter, r *http.Request
 	conn, err := upGrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		logrus.Errorf("serverWs err:%s", err.Error())
+		c.Lager.Error("serverWs err:%s", zap.Error(err))
 		return
 	}
 	ch := NewChannel(server.Profile.Server.BroadcastSize)

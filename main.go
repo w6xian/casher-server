@@ -8,13 +8,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"casher-server/internal/config"
 	"casher-server/internal/exts"
 
 	"github.com/kardianos/service"
 )
 
 var AppName = "sstWebsockServer"
-var flagSet *flag.FlagSet
 var version string = "1.0.0"
 
 func init() {
@@ -34,9 +34,12 @@ func main() {
 	}
 	// 进程守护
 
+	flagSet := flag.NewFlagSet(AppName, flag.ContinueOnError)
+	profile := config.NewProfile()
 	prg := &Deamon{
 		Context: ctx,
 		FlagSet: flagSet,
+		Profile: profile,
 	}
 
 	s, err := service.New(prg, svcConfig)

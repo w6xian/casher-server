@@ -1,17 +1,22 @@
 package main
 
 import (
+	"casher-server/api/rpc"
 	"casher-server/connect"
 	"context"
 	"flag"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"casher-server/internal/config"
 
 	"github.com/kardianos/service"
+	"github.com/soheilhy/cmux"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -84,10 +89,42 @@ func (p *Deamon) run(s service.Service) {
 	logger := zap.New(core, zap.AddCaller())
 	defer logger.Sync()
 
-	//初始化加入对应的
-	connect.New(p.Context, p.Profile, logger).Run()
+	ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("server ws addr:", p.Profile.Server.WsAddr)
+	muxServer := cmux.New(ln)
+	//Otherwise, we match it againts a websocket upgrade request.
+	wsListener := muxServer.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
+	// wsl := m.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
+	// httpListener := muxServer.Match(cmux.HTTP1Fast())
+	// rpcxListener := muxServer.Match(cmux.Any())
+	go func() {
+		//初始化加入对应的
+		connect.New(p.Context, p.Profile, logger).Server()
+		http.Serve(wsListener, nil)
+	}()
+	go func() {
+		// 初始化rpc服务
+		rpc.InitLogicRpcServer(p.Context, p.Profile, logger)
+	}()
+
+	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
+		panic(err)
+	}
 
 }
+
+// func rpcxPrefixByteMatcher() cmux.Matcher {
+// 	var magic = byte(0x08)
+// 	return func(r io.Reader) bool {
+// 		buf := make([]byte, 1)
+// 		n, _ := r.Read(buf)
+// 		fmt.Println(buf)
+// 		return n == 1 && buf[0] == magic
+// 	}
+// }
 
 func (p *Deamon) Stop(s service.Service) error {
 	for _, cmd := range p.pool {

@@ -39,6 +39,8 @@ type Server struct {
 	ReadBufferSize  int           `mapstructure:"read_buffer_size"`
 	WriteBufferSize int           `mapstructure:"write_buffer_size"`
 	BroadcastSize   int           `mapstructure:"broadcast_size"`
+	RpcAddr         string        `mapstructure:"rpc_addr"`
+	WsAddr          string        `mapstructure:"ws_addr"`
 }
 
 type Machine struct {
@@ -161,6 +163,8 @@ func NewProfile() *Profile {
 				Mode:   "prod",
 			},
 			Server: &Server{
+				RpcAddr:         "0.0.0.0:8965",
+				WsAddr:          "0.0.0.0:8966",
 				Address:         "0.0.0.0:8888",
 				Network:         "tcp",
 				Origins:         []string{"*"},
