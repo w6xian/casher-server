@@ -1,2 +1,4 @@
 /vendor
 casher-server.exe
+*.log
+cash.log
