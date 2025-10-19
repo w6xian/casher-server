@@ -180,7 +180,7 @@ func NewProfile() *Profile {
 				Database:     "cloud",
 				Host:         "127.0.0.1",
 				Port:         3306,
-				Protocol:     "sqlite",
+				Protocol:     "mysql",
 				Pretable:     "mi_",
 				Charset:      "utf8mb4",
 				MaxOpenConns: 64,

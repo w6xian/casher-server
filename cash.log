@@ -247,3 +247,15 @@
 {"log.level":"INFO","@timestamp":"2025-08-30T17:29:44.117+0800","message":"get a message ","body":"{\"authToken\":\"335b084462661fd119cd3c3177675876.50b1a1e0000f6fde394850bba9ecd301\",\"roomId\":1,\"serverId\":\"local\",\"type\":\"h5\"}","ecs.version":"1.6.0"}
 {"log.level":"INFO","@timestamp":"2025-08-30T17:29:44.117+0800","message":"websocket rpc call return userId:%d,RoomId:%d","userId":1024,"RoomId":1,"ecs.version":"1.6.0"}
 {"log.level":"INFO","@timestamp":"2025-08-30T17:29:48.112+0800","message":"websocket.PingMessage ","type":9,"ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-08-31T10:43:50.182+0800","message":"Connect layer server id","server_id":"ws-WaYu6viAT5YoTopnU2dZjy","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T12:51:41.129+0800","message":"Connect layer server id","server_id":"ws-VwZtA8CZQ4kWs2An6T2aLa","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T12:54:54.827+0800","message":"Connect layer server id","server_id":"ws-PbtPWusBfJoYVD2URryh2C","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:14:19.000+0800","message":"Connect layer server id","server_id":"ws-SG3cJqoDM1nifkwXr9pVHi","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:31:30.782+0800","message":"Connect layer server id","server_id":"ws-2auMeQn3eLcXpS6fdnUneS","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:32:39.148+0800","message":"Connect layer server id","server_id":"ws-UN77xs3jHZ6skReKfCCewn","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:33:51.776+0800","message":"Connect layer server id","server_id":"ws-2iVgUm3wuppcvZjzcQYp2J","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:35:37.227+0800","message":"Connect layer server id","server_id":"ws-K7UxdN49KWTB4PcJxK8DmL","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:36:58.107+0800","message":"Connect layer server id","server_id":"ws-VEKdbeb3ZX6Tq36BL5FJtG","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:38:30.643+0800","message":"Connect layer server id","server_id":"ws-StbU2WP1dxRJMFVs2JPhqT","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:46:21.874+0800","message":"Connect layer server id","server_id":"ws-EcaFaCyjY42qhHBo9QPPp8","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T13:57:56.253+0800","message":"Connect layer server id","server_id":"ws-BrYLwumeZzByRjMS8xNtzx","ecs.version":"1.6.0"}

@@ -7,6 +7,7 @@ package rpc
 
 import (
 	"casher-server/internal/config"
+	"casher-server/internal/store"
 	"context"
 	"sync"
 
@@ -16,11 +17,13 @@ import (
 
 var once sync.Once
 
-func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger) {
+func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store) {
 	once.Do(func() {
 		order := new(Order)
 		order.Profile = profile
 		order.Lager = logger
+		order.Store = store
+
 		s := server.NewServer()
 		s.DisableHTTPGateway = true
 		s.RegisterName("micro-order", order, "")

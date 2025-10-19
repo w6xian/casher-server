@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"casher-server/internal/config"
+	"casher-server/internal/store"
+	"casher-server/internal/store/db"
 
 	"github.com/kardianos/service"
 	"github.com/soheilhy/cmux"
@@ -54,6 +56,7 @@ func (p *Deamon) Start(s service.Service) error {
 }
 
 func (p *Deamon) run(s service.Service) {
+	ctx := p.Context
 	// 初始化日志
 	p.initConfig()
 	// 日志
@@ -89,6 +92,19 @@ func (p *Deamon) run(s service.Service) {
 	logger := zap.New(core, zap.AddCaller())
 	defer logger.Sync()
 
+	// 数据库 这样设计是为了方便以后换数据库引擎
+	dbDriver, err := db.NewDBDriver(p.Profile)
+	if err != nil {
+		panic(err)
+	}
+	storeInstance, err := store.New(dbDriver, p.Profile, logger)
+	if err != nil {
+		panic(err)
+	}
+	if err = storeInstance.Migrate(ctx); err != nil {
+		panic(err)
+	}
+
 	ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
 	if err != nil {
 		panic(err)
@@ -106,8 +122,8 @@ func (p *Deamon) run(s service.Service) {
 		http.Serve(wsListener, nil)
 	}()
 	go func() {
-		// 初始化rpc服务
-		rpc.InitLogicRpcServer(p.Context, p.Profile, logger)
+
+		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance)
 	}()
 
 	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
@@ -141,6 +157,7 @@ func (p *Deamon) Stop(s service.Service) error {
 func (h *Deamon) initConfig() {
 	h.FlagSet.String("config", "conf.toml", "path to config file")
 	configFile := h.FlagSet.Lookup("config").Value.String()
+	fmt.Println("configFile=", configFile)
 	// 文件里读取配置
 	err := h.Profile.FromFile(configFile, config.TOML)
 	if err != nil {
