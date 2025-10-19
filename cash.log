@@ -259,3 +259,5 @@
 {"log.level":"INFO","@timestamp":"2025-10-19T13:38:30.643+0800","message":"Connect layer server id","server_id":"ws-StbU2WP1dxRJMFVs2JPhqT","ecs.version":"1.6.0"}
 {"log.level":"INFO","@timestamp":"2025-10-19T13:46:21.874+0800","message":"Connect layer server id","server_id":"ws-EcaFaCyjY42qhHBo9QPPp8","ecs.version":"1.6.0"}
 {"log.level":"INFO","@timestamp":"2025-10-19T13:57:56.253+0800","message":"Connect layer server id","server_id":"ws-BrYLwumeZzByRjMS8xNtzx","ecs.version":"1.6.0"}
+{"log.level":"ERROR","@timestamp":"2025-10-19T15:28:55.109+0800","message":"ReadProductSuppUseCode Query err","error":{"message":"404"},"ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-19T15:33:59.908+0800","message":"Connect layer server id","server_id":"ws-4eTqF2kWJSc7UkgJXT4YSQ","ecs.version":"1.6.0"}
