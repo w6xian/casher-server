@@ -28,3 +28,10 @@ func MD5(input string) string {
 	md5Ctx.Write([]byte(input))
 	return hex.EncodeToString(md5Ctx.Sum(nil))
 }
+
+func IsEmptyUseDefault(value string, defaultValue string) string {
+	if strings.TrimSpace(value) != "" {
+		return value
+	}
+	return defaultValue
+}

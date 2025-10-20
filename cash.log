@@ -261,3 +261,9 @@
 {"log.level":"INFO","@timestamp":"2025-10-19T13:57:56.253+0800","message":"Connect layer server id","server_id":"ws-BrYLwumeZzByRjMS8xNtzx","ecs.version":"1.6.0"}
 {"log.level":"ERROR","@timestamp":"2025-10-19T15:28:55.109+0800","message":"ReadProductSuppUseCode Query err","error":{"message":"404"},"ecs.version":"1.6.0"}
 {"log.level":"INFO","@timestamp":"2025-10-19T15:33:59.908+0800","message":"Connect layer server id","server_id":"ws-4eTqF2kWJSc7UkgJXT4YSQ","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-20T09:51:46.888+0800","message":"Connect layer server id","server_id":"ws-WBakp9WxFP39XpPTmGsrUv","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-20T10:44:46.187+0800","message":"Connect layer server id","server_id":"ws-GE3naHtREYj2H1Ly8mmrcK","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-20T10:51:24.846+0800","message":"Connect layer server id","server_id":"ws-UUpv4zYWqEUrHrMWEGoNqc","ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-20T11:37:54.685+0800","message":"Connect layer server id","server_id":"ws-DsN61Q5TZLtZ4Z8S3PLFxp","ecs.version":"1.6.0"}
+{"log.level":"ERROR","@timestamp":"2025-10-20T11:38:52.359+0800","message":"ReadProductSuppUseCode Insert err","error":{"message":"Error 1406 (22001): Data too long for column 'app_sec' at row 1"},"ecs.version":"1.6.0"}
+{"log.level":"INFO","@timestamp":"2025-10-20T12:08:20.511+0800","message":"Connect layer server id","server_id":"ws-52nR38HXyDRr3Pw7qza7my","ecs.version":"1.6.0"}

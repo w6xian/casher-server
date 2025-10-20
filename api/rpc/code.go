@@ -1,20 +1,31 @@
 package rpc
 
 import (
+	"casher-server/internal/store"
+	"casher-server/internal/utils"
+	"casher-server/internal/utils/id"
 	"context"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 )
 
 type SuppCodeRequest struct {
-	Code       string `json:"code"`
-	ShopCode   string `json:"shop_code"`
-	CreateTime string `json:"createTime"`
-	AuthToken  string `json:"authToken"` //仅tcp时使用，发送msg时带上
+	Code string `json:"code"`
+	// 本地的appId，用于以后推送订单
+	AppId   string `json:"app_id"`
+	AppCode string `json:"app_code"`
+	// 服务器的openId
+	OpenId string `json:"open_id"`
+	// GEO信息
+	Latitude  string `json:"latitude"`
+	Longitude string `json:"longitude"`
+	Sign      string `json:"sign"`
 }
 
 type SuppCodeReply struct {
+	AppId         string `json:"com_api"`
 	Code          string `json:"code"`
 	Name          string `json:"name"`
 	SortName      string `json:"sort_name"`
@@ -35,93 +46,44 @@ type SuppCodeReply struct {
 	RegisterDate  string `json:"register_date"`
 	ExpireDate    string `json:"expire_date"`
 	CreateTime    string `json:"create_time"`
-	AuthToken     string `json:"auth_token"`
-}
-type ProxyInfo struct {
-	ProxyId      int64  `json:"com_id"`
-	Avatar       string `json:"avatar"`
-	Name         string `json:"name"`
-	SortName     string `json:"sort_name"`
-	SnCode       string `json:"sn_code"`
-	LegalPersion string `json:"legal_persion"`
-	ContactName  string `json:"contact_name"`
-	ContactPhone string `json:"contact_phone"`
-	ContactEmail string `json:"contact_email"`
-	RegisterDate string `json:"register_date"`
-	ExpireDate   string `json:"expire_date"`
-	AreaCode     string `json:"area_code"`
-	AreaPath     string `json:"area_path"`
-	AreaStreet   string `json:"area_street"`
-	Street       string `json:"street"`
-	Address      string `json:"address"`
-	CreateTime   string `json:"intime"`
-}
-
-/*
- * mysql
-CREATE TABLE `mi_cloud_companies_shops_auth` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `app_id` varchar(45) NOT NULL COMMENT '应用ID号',
-  `app_sec` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密匙',
-  `com_id` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '0' COMMENT '被授权方',
-  `com_name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '授权公司名称',
-  `auth_user_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '同意人Id',
-  `auth_user_name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '同意人名称',
-  `expire_time` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '过期时间',
-  `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '1有效0无效',
-  `intime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '入库时间',
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `idx_app_id` (`app_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='超市客户授权';
-*/
-
-type Auths struct {
-	Id           int64  `json:"id"`
-	AppId        string `json:"app_id"`
-	AppSec       string `json:"app_sec"`
-	ComId        string `json:"com_id"`
-	ComName      string `json:"com_name"`
-	AuthUserId   int64  `json:"auth_user_id"`
-	AuthUserName string `json:"auth_user_name"`
-	ExpireTime   int64  `json:"expire_time"`
-	Status       int64  `json:"status"`
-	Intime       int64  `json:"intime"`
+	AuthId        int64  `json:"auth_id"`
+	AuthAppId     string `json:"auth_app_id"`
+	AuthAppSec    string `json:"auth_app_sec"`
+	Sign          string `json:"sign"`
 }
 
 func (c *Order) ReadProductSuppUseCode(ctx context.Context, req *SuppCodeRequest, reply *SuppCodeReply) error {
 	fmt.Println("ReadProductSuppUseCode=", req.Code)
+
+	// 1 初始化数据库连接
 	ctx, close := c.Store.DbConnectWithClose(ctx)
 	defer close()
+	// 2 获取数据库连接
 	link := c.Store.GetLink(ctx)
 	fmt.Println("ReadProductSuppUseCode link=", link)
-	row, err := link.Table("crm_companies").Where("open_id = '%s'", req.Code).Query()
+	// 2.1 数据驱动
+	db := c.Store.GetDriver()
+	// 3 查询公司信息
+	comInfo, err := db.GetCRMCompanyByOpenId(link, req.Code)
 	if err != nil {
 		c.Lager.Error("ReadProductSuppUseCode Query err", zap.Error(err))
 		return err
 	}
-	proxyId, err := row.Get("proxy_id").Int64()
-	if err != nil {
-		c.Lager.Error("ReadProductSuppUseCode Query err", zap.Error(err))
-		return err
-	}
-	com, err := link.Table("cloud_companies").Where("com_id = %d", proxyId).Query()
+	// 注册信息
+	proxy, err := db.GetProxyInfoById(link, comInfo.ProxyId)
 	if err != nil {
 		c.Lager.Error("ReadProductSuppUseCode Query err", zap.Error(err))
 		return err
 	}
 
-	proxy := &ProxyInfo{}
-	err = com.Scan(proxy)
-	if err != nil {
-		c.Lager.Error("ReadProductSuppUseCode Scan err", zap.Error(err))
-		return err
-	}
+	// 授权信息返回
 	reply.Name = proxy.Name
 	reply.SortName = proxy.SortName
 	reply.SnCode = proxy.SnCode
 	reply.LegalPersion = proxy.LegalPersion
 	reply.ContactName = proxy.ContactName
-	reply.ContactPhone = proxy.ContactPhone
+	reply.ContactPhone = utils.IsEmptyUseDefault(proxy.ContactPhone, proxy.ContactMobile)
+	reply.ContactMobile = utils.IsEmptyUseDefault(proxy.ContactMobile, proxy.ContactPhone)
 	reply.ContactEmail = proxy.ContactEmail
 	reply.RegisterDate = proxy.RegisterDate
 	reply.ExpireDate = proxy.ExpireDate
@@ -133,6 +95,38 @@ func (c *Order) ReadProductSuppUseCode(ctx context.Context, req *SuppCodeRequest
 	reply.CreateTime = proxy.CreateTime
 	reply.Avatar = proxy.Avatar
 
-	fmt.Println("ReadProductSuppUseCode reply=", reply)
+	// 4 查询授权信息
+
+	auths, err := db.GetAuthByComId(link, comInfo.Id)
+	if err == nil {
+		reply.AuthId = auths.Id
+		reply.AuthAppId = auths.AppId
+		reply.AuthAppSec = auths.AppSec
+		return nil
+	}
+	appId := id.ShortID()
+	appSec := id.RandStr(64)
+	authId, err := db.InsertAuth(link, &store.Auths{
+		ProxyId:      comInfo.ProxyId,
+		AppId:        appId,
+		AppSec:       appSec,
+		ComId:        comInfo.Id,
+		ComName:      proxy.Name,
+		AuthUserId:   0,
+		AuthUserName: "",
+		ExpireTime:   0,
+		Status:       1,
+		Intime:       time.Now().Unix(),
+	})
+	if err != nil {
+		c.Lager.Error("ReadProductSuppUseCode Insert err", zap.Error(err))
+		return err
+	}
+	// authId
+	reply.AuthId = authId
+	reply.AuthAppId = appId
+	reply.AuthAppSec = appSec
+	// reply写一个方法，传入结构按Tag字母升序排序，值转换为字符串后，按Tag:Value格式拼接，多个属性之间用分号分隔，算出md5再与key再md5得到sign
+	reply.Sign = utils.CalcSign(reply, comInfo.ComPem)
 	return nil
 }
