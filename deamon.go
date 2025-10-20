@@ -88,7 +88,10 @@ func (p *Deamon) run(s service.Service) {
 	core := ecszap.NewCore(encoderConfig,
 		// zapcore.AddSync(hook),
 		zapcore.NewMultiWriteSyncer(syncer...),
-		zap.InfoLevel)
+		zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+			return lvl >= zapcore.Level(p.Profile.Logger.Level)
+		}),
+	)
 	logger := zap.New(core, zap.AddCaller())
 	defer logger.Sync()
 
@@ -122,7 +125,6 @@ func (p *Deamon) run(s service.Service) {
 		http.Serve(wsListener, nil)
 	}()
 	go func() {
-
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance)
 	}()
 

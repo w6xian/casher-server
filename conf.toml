@@ -36,4 +36,6 @@ server = "agents.com"   # if has port :port,eg: a.com:8080
 port = 8510
 domain = "127.0.0.1"
 
+[log]
+level = 0
 # Error in creating struct from json: error formatting: 1:9: expected 'IDENT', found 'case' (and 1 more errors), was formatting
