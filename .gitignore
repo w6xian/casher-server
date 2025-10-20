@@ -1,6 +1,4 @@
 /vendor
 casher-server.exe
 *.log
-cash.log
-cash.log
-cash.log
+conf.toml
