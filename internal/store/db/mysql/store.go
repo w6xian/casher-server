@@ -8,35 +8,13 @@ import (
 	"github.com/w6xian/sqlm"
 )
 
-func (db *DB) GetProxyInfoById(link sqlm.ITable, id int64) (*store.ProxyInfo, error) {
-	proxy := &store.ProxyInfo{}
-	authc, err := link.Table(store.TABLE_CLOUD_COMPANIES).Where("com_id = %d", id).Query()
-	if err != nil {
-		return nil, err
-	}
-	err = authc.Scan(proxy)
-	if err != nil {
-		return nil, err
-	}
-	return proxy, nil
-}
-
-// 只是创建一个公司信息
-/**
-ALTER TABLE `cloud`.`mi_cloud_companies`
-ADD COLUMN `mch_code` VARCHAR(45) NOT NULL DEFAULT '' COMMENT 'Id.shortId(商户id string)' AFTER `open_id`;
-
-// 添加终端（零售）分类
-INSERT INTO `cloud`.`mi_cloud_companies_categories` (`id`, `code`, `name`, `mark`, `sort`, `status`, `intime`) VALUES ('6', '6', '终端（零售）', '终端（零售）企业', '50', '1', '1588686019');
-
-*/
-func (db *DB) CreateProxyLite(link sqlm.ITable, req *store.ShopInfoReq) (int64, error) {
+func (db *DB) CreateStoreLite(link sqlm.ITable, req *store.ShopInfoReq) (int64, error) {
 	reqId, err := id.NextId(1)
 	if err != nil {
 		reqId = time.Now().UnixNano()
 	}
 	mchCode := id.ShortID()
-	id, err := link.Table(store.TABLE_CLOUD_COMPANIES).
+	id, err := link.Table(store.TABLE_COM_SHOPS).
 		Insert(map[string]any{
 			"open_id":         reqId,
 			"mch_code":        mchCode,

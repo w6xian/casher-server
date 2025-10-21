@@ -9,13 +9,13 @@ import (
 	"go.uber.org/zap"
 )
 
-type Order struct {
+type Shop struct {
 	Profile *config.Profile
 	Lager   *zap.Logger
 	Store   *store.Store
 }
 
-func (v *Order) Start(ctx context.Context) (context.Context, func()) {
+func (v *Shop) Start(ctx context.Context) (context.Context, func()) {
 	ctx = lager.RequestLager(ctx, v.Lager)
 	// 准备日志资料
 	return ctx, func() {

@@ -7,7 +7,7 @@ import (
 )
 
 // ReadProductSuppUseCode 读取产品供应商使用码
-func (c *Order) ReadProductSuppUseCode(ctx context.Context, req *store.SuppCodeRequest, reply *store.SuppCodeReply) error {
+func (c *Shop) ReadProductSuppUseCode(ctx context.Context, req *store.SuppCodeRequest, reply *store.SuppCodeReply) error {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("ReadProductSuppUseCode recover: %v\r\n", err)

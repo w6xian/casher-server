@@ -19,14 +19,14 @@ var once sync.Once
 
 func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store) {
 	once.Do(func() {
-		order := new(Order)
-		order.Profile = profile
-		order.Lager = logger
-		order.Store = store
+		shop := new(Shop)
+		shop.Profile = profile
+		shop.Lager = logger
+		shop.Store = store
 
 		s := server.NewServer()
 		s.DisableHTTPGateway = true
-		s.RegisterName("micro-order", order, "")
+		s.RegisterName("micro-shop", shop, "")
 		s.Serve("tcp", profile.Server.RpcAddr)
 	})
 }

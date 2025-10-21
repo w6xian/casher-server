@@ -4,7 +4,6 @@ import (
 	"casher-server/internal/config"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db/mysql"
-	"casher-server/internal/store/db/sqlite"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -18,7 +17,7 @@ func NewDBDriver(profile *config.Profile) (store.Driver, error) {
 	case "mysql":
 		driver, err = mysql.NewDB(profile)
 	case "sqlite":
-		driver, err = sqlite.NewDB(profile)
+		return nil, errors.New("sqlite driver not implemented")
 	default:
 		return nil, errors.New("unknown db driver")
 	}

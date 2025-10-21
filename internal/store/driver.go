@@ -24,6 +24,7 @@ type Driver interface {
 	GetCRMCompanyByOpenId(link sqlm.ITable, openId string) (*CompInfo, error)
 	// 代理商信息
 	GetProxyInfoById(link sqlm.ITable, id int64) (*ProxyInfo, error)
+	CreateProxyLite(link sqlm.ITable, req *ShopInfoReq) (int64, error)
 	//lagor
 	GetMap(link sqlm.ITable, tableName string, pk string, value string) map[string]any
 	GetMapById(link sqlm.ITable, tableName string, id int64) map[string]any
