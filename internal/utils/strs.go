@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"strings"
 
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -34,4 +35,11 @@ func IsEmptyUseDefault(value string, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// verifyPassword 验证密码，相当于PHP的password_verify函数
+// 使用bcrypt算法验证密码是否与哈希值匹配
+func VerifyPassword(password, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
 }

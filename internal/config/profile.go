@@ -22,10 +22,11 @@ var opt *Profile
 var once sync.Once
 
 type Apps struct {
-	Secret string `mapstructure:"secret"`
-	AppId  string `mapstructure:"app_id"`
-	AppKey string `mapstructure:"app_key"`
-	Mode   string `mapstructure:"mode"`
+	Secret   string `mapstructure:"secret"`
+	AppId    string `mapstructure:"app_id"`
+	AppKey   string `mapstructure:"app_key"`
+	Mode     string `mapstructure:"mode"`
+	Language string `mapstructure:"language"`
 }
 
 type Server struct {
@@ -157,10 +158,11 @@ func NewProfile() *Profile {
 				Code: "SST-1",
 			},
 			Apps: &Apps{
-				Secret: "",
-				AppId:  "",
-				AppKey: "",
-				Mode:   "prod",
+				Secret:   "",
+				AppId:    "",
+				AppKey:   "",
+				Mode:     "prod",
+				Language: "zh",
 			},
 			Server: &Server{
 				RpcAddr:         "0.0.0.0:8965",
@@ -176,6 +178,7 @@ func NewProfile() *Profile {
 				WriteBufferSize: 1024,
 				BroadcastSize:   512,
 			},
+
 			Store: &sqlm.Server{
 				Database:     "cloud",
 				Host:         "127.0.0.1",

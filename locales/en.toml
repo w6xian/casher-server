@@ -1,0 +1,2 @@
+# 注册相关
+mobile_exists = "Mobile number {{.mobile}} already exists"

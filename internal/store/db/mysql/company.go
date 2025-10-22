@@ -8,6 +8,21 @@ import (
 	"github.com/w6xian/sqlm"
 )
 
+func (db *DB) GetComAdmin(link sqlm.ITable, proxyId int64, mobile string) (*store.Admin, error) {
+	admin := &store.Admin{}
+	authc, err := link.Table(store.TABLE_COM_ADMIN).
+		Where("username = '%s'", mobile).
+		AndOption(proxyId > 0, "proxy_id = %d", proxyId).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	err = authc.Scan(admin)
+	if err != nil {
+		return nil, err
+	}
+	return admin, nil
+}
 func (db *DB) GetCRMCompanyById(link sqlm.ITable, id int64) (*store.CompInfo, error) {
 	company := &store.CompInfo{}
 	authc, err := link.Table(store.TABLE_CRM_COMPANIES).Where("id = %d", id).Query()

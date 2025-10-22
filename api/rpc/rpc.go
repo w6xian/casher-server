@@ -23,6 +23,7 @@ func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *za
 		shop.Profile = profile
 		shop.Lager = logger
 		shop.Store = store
+		shop.Language = profile.Apps.Language
 
 		s := server.NewServer()
 		s.DisableHTTPGateway = true

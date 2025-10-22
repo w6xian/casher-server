@@ -3,9 +3,11 @@ module casher-server
 go 1.24.3
 
 require (
+	github.com/BurntSushi/toml v1.5.0
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/bwmarrin/snowflake v0.3.0
 	github.com/denisbrodbeck/machineid v1.0.1
+	github.com/fsnotify/fsnotify v1.8.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f
@@ -14,6 +16,7 @@ require (
 	github.com/kardianos/service v1.2.4
 	github.com/lithammer/shortuuid/v4 v4.2.0
 	github.com/mozillazg/go-pinyin v0.21.0
+	github.com/nicksnyder/go-i18n/v2 v2.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/praserx/ipconv v1.2.2
 	github.com/smallnest/rpcx v1.9.1
@@ -23,8 +26,9 @@ require (
 	github.com/w6xian/sqlm v0.0.24
 	go.elastic.co/ecszap v1.0.3
 	go.uber.org/zap v1.27.0
-	golang.org/x/mod v0.26.0
-	golang.org/x/text v0.28.0
+	golang.org/x/crypto v0.43.0
+	golang.org/x/mod v0.28.0
+	golang.org/x/text v0.30.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	modernc.org/mathutil v1.6.0
 )
@@ -41,7 +45,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
-	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -95,12 +98,11 @@ require (
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.40.0 // indirect
 	golang.org/x/exp v0.0.0-20250128144449-3edf0e91c1ae // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/net v0.45.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/tools v0.37.0 // indirect
 	google.golang.org/protobuf v1.36.4 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect

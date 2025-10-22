@@ -25,6 +25,10 @@ type Driver interface {
 	// 代理商信息
 	GetProxyInfoById(link sqlm.ITable, id int64) (*ProxyInfo, error)
 	CreateProxyLite(link sqlm.ITable, req *ShopInfoReq) (int64, error)
+	// 店铺
+	GetShopByAppId(link sqlm.ITable, appId string) (*ShopLinkReqReply, error)
+	// 公司管理员
+	GetComAdmin(link sqlm.ITable, proxyId int64, mobile string) (*Admin, error)
 	//lagor
 	GetMap(link sqlm.ITable, tableName string, pk string, value string) map[string]any
 	GetMapById(link sqlm.ITable, tableName string, id int64) map[string]any

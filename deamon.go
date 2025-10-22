@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"casher-server/internal/config"
+	"casher-server/internal/i18n"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
 
@@ -59,6 +60,9 @@ func (p *Deamon) run(s service.Service) {
 	ctx := p.Context
 	// 初始化日志
 	p.initConfig()
+	// 初始化 i18n
+	p.initLanguage()
+
 	// 日志
 	optsLog := p.Profile.Logger
 	hook := &lumberjack.Logger{
@@ -162,6 +166,17 @@ func (h *Deamon) initConfig() {
 	fmt.Println("configFile=", configFile)
 	// 文件里读取配置
 	err := h.Profile.FromFile(configFile, config.TOML)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(0)
+	}
+}
+
+func (h *Deamon) initLanguage() {
+	// 初始化 i18n
+	h.FlagSet.String("lang", "locales", "path to language files")
+	langDir := h.FlagSet.Lookup("lang").Value.String()
+	err := i18n.Init(langDir)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(0)

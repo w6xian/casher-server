@@ -22,6 +22,7 @@ keyword = ["import","case"]
 app_key = "fSShAcyZSrQShysoSEEKfCwMiTvHhfuC"
 app_id = "DsBEofUkvrIqnTfYHkjYvBIPgOdmypha"
 app_secret = "eqEXDIZTVdAdwZaXIEvSegHlZJCoIufn"
+language = "en"
 
 [http]
 scheme = "http" 
@@ -38,4 +39,7 @@ domain = "127.0.0.1"
 
 [log]
 level = 0
-# Error in creating struct from json: error formatting: 1:9: expected 'IDENT', found 'case' (and 1 more errors), was formatting
+# Error in creating struct from json: error formatting: 1:9: expected 'IDENT', found 'case' (and 1 more errors), was formatting "case"
+# Error in creating struct from json: error formatting: 1:13: expected 'IDENT', found 'import' (and 1 more errors), was formatting "import"
+
+

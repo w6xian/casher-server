@@ -11,4 +11,6 @@ const (
 	TABLE_COM_STORE = "com_store"
 	// shop表
 	TABLE_COM_SHOPS = "com_shops"
+	// 管理员表
+	TABLE_COM_ADMIN = "com_admin"
 )
