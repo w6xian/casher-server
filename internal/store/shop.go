@@ -9,6 +9,17 @@ import (
 	"strings"
 )
 
+type Req struct {
+	Lang    string         `json:"lang"`
+	AppId   string         `json:"app_id"`
+	TrackId string         `json:"track_id"`
+	Tracker *lager.Tracker `json:"-"`
+}
+
+func (req *Req) GetTrackInfo(ctx context.Context) (string, string, string) {
+	return req.AppId, req.TrackId, req.Lang
+}
+
 type ShopInfoReq struct {
 	Avatar     string `json:"avatar"`
 	Name       string `json:"name"`
@@ -37,6 +48,7 @@ type ShopInfoReqReply struct {
 }
 
 type ShopLinkReq struct {
+	Req
 	Code     string `json:"code"`
 	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
@@ -90,6 +102,7 @@ func (s *Store) SyncShopInfo(ctx context.Context, req *ShopInfoReq, reply *ShopI
 }
 
 func (s *Store) ShopLink(ctx context.Context, req *ShopLinkReq, reply *ShopLinkReqReply) error {
+	lang := req.Tracker
 	// 1 日志
 	log := lager.FromContext(ctx)
 	defer log.Sync()
@@ -110,10 +123,10 @@ func (s *Store) ShopLink(ctx context.Context, req *ShopLinkReq, reply *ShopLinkR
 	proxyId := shop.ProxyId
 	admin, err := db.GetComAdmin(link, proxyId, req.Mobile)
 	if err != nil {
-		return s.Error("shop_link_get_admin", "获取店铺管理员失败:{{.error}}", i18n.String("error", err.Error()))
+		return lang.Error("shop_link_get_admin", "获取店铺管理员失败:{{.error}}", i18n.String("error", err.Error()))
 	}
 	if admin.FailTimes >= 3 {
-		return s.Error("shop_link_fail_times", "店铺链接失败次数超过次限制")
+		return lang.Error("shop_link_fail_times", "店铺链接失败次数超过次限制")
 	}
 	// 对比密码
 	// 请用PHP中的password_verify函数对比密码，给出Golang的实现
@@ -122,7 +135,7 @@ func (s *Store) ShopLink(ctx context.Context, req *ShopLinkReq, reply *ShopLinkR
 	fmt.Println("ShopLink utils.MD5(utils.MD5(req.Password))=", utils.MD5(utils.MD5(strings.TrimSpace(req.Password))))
 	fmt.Println("ShopLink utils.MD5(utils.MD5(strings.TrimSpace(req.Password)))=", utils.VerifyPassword(utils.MD5(utils.MD5(strings.TrimSpace(req.Password))), admin.Password))
 	if !utils.VerifyPassword(utils.MD5(utils.MD5(strings.TrimSpace(req.Password))), admin.Password) {
-		return s.Error("shop_link_password", "店铺链接密码错误")
+		return lang.Error("shop_link_password", "店铺链接密码错误")
 	}
 	// 登录成功
 	reply.ProxyId = proxyId

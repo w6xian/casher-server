@@ -33,4 +33,8 @@ type Driver interface {
 	GetMap(link sqlm.ITable, tableName string, pk string, value string) map[string]any
 	GetMapById(link sqlm.ITable, tableName string, id int64) map[string]any
 	SelectMap(link sqlm.ITable, tableName string, pk string, value string) []map[string]any
+	// 通过高品条形码查询商品信息
+	GetPublicProductBySn(link sqlm.ITable, sn string) (*ProductModel, error)
+	// 通过高品条形码查询公司信息
+	GetPublicCompanyBySn(link sqlm.ITable, sn string) (*CompanyModel, error)
 }

@@ -13,4 +13,7 @@ const (
 	TABLE_COM_SHOPS = "com_shops"
 	// 管理员表
 	TABLE_COM_ADMIN = "com_admin"
+	// 商品表
+	TABLE_CLOUD_PUBLIC_PRODUCTS  = "cloud_public_products"
+	TABLE_CLOUD_PUBLIC_COMPANIES = "cloud_public_companies"
 )
