@@ -35,6 +35,13 @@ type Driver interface {
 	SelectMap(link sqlm.ITable, tableName string, pk string, value string) []map[string]any
 	// 通过高品条形码查询商品信息
 	GetPublicProductBySn(link sqlm.ITable, sn string) (*ProductModel, error)
-	// 通过高品条形码查询公司信息
+	// GetPublicCompanyBySn 通过高品条形码查询公司信息
 	GetPublicCompanyBySn(link sqlm.ITable, sn string) (*CompanyModel, error)
+	// GetPublicCompanyByName 通过高品公司名称查询公司信息
+	GetPublicCompanyByName(link sqlm.ITable, name string) (*CompanyModel, error)
+	// GetPublicCompanyById 根据公司ID查询公司
+	GetPublicCompanyById(link sqlm.ITable, id int64) (*CompanyModel, error)
+	// QueryPublicCompanyBySn 根据公司编码查询公司
+	QueryPublicCompanyBySn(link sqlm.ITable, sn string) ([]*CompanyLiteModel, error)
+	// QueryPublicCompanyByName 根据公司名称查询公司
 }

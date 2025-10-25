@@ -7,7 +7,7 @@ import (
 )
 
 // GetPrdBySn 获取商品信息
-func (c *Shop) ReqPrdBySn(ctx context.Context, req *store.PrdSnReq, reply *store.PrdSnReqReply) error {
+func (c *Shop) ReqPrdBySn(ctx context.Context, req *store.PrdSnReq, reply *store.PublicProductReply) error {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("ReqPrdBySn recover: %v\r\n", err)

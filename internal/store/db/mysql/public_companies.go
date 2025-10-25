@@ -9,7 +9,25 @@ import (
 // GetPublicCompanyBySn 根据公司编码查询公司
 func (db *DB) GetPublicCompanyBySn(link sqlm.ITable, sn string) (*store.CompanyModel, error) {
 	company := &store.CompanyModel{}
-	authc, err := link.Table(store.TABLE_CLOUD_PUBLIC_COMPANIES).Where("sn = '%s'", sn).Query()
+	authc, err := link.Table(store.TABLE_CLOUD_PUBLIC_COMPANIES).
+		Where("sn = '%s'", sn).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	err = authc.Scan(company)
+	if err != nil {
+		return nil, err
+	}
+	return company, nil
+}
+
+// GetPublicCompanyByName 根据公司名称查询公司
+func (db *DB) GetPublicCompanyByName(link sqlm.ITable, name string) (*store.CompanyModel, error) {
+	company := &store.CompanyModel{}
+	authc, err := link.Table(store.TABLE_CLOUD_PUBLIC_COMPANIES).
+		Where("name = '%s'", name).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +41,9 @@ func (db *DB) GetPublicCompanyBySn(link sqlm.ITable, sn string) (*store.CompanyM
 // GetPublicCompanyById 根据公司ID查询公司
 func (db *DB) GetPublicCompanyById(link sqlm.ITable, id int64) (*store.CompanyModel, error) {
 	company := &store.CompanyModel{}
-	authc, err := link.Table(store.TABLE_CLOUD_PUBLIC_COMPANIES).Where("id = %d", id).Query()
+	authc, err := link.Table(store.TABLE_CLOUD_PUBLIC_COMPANIES).
+		Where("id = %d", id).
+		Query()
 	if err != nil {
 		return nil, err
 	}

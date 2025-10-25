@@ -8,13 +8,7 @@ import (
 
 type PrdSnReq struct {
 	Req
-	Sn   string `json:"sn"`
-	Ts   int64  `json:"ts"`
-	Sign string `json:"sign"`
-}
-
-func (req *PrdSnReq) DecryptInfo() (string, int64) {
-	return req.Sign, req.Ts
+	Sn string `json:"sn"`
 }
 
 func (req *PrdSnReq) Validate() error {
@@ -24,21 +18,45 @@ func (req *PrdSnReq) Validate() error {
 	return nil
 }
 
-type PrdSnReqReply struct {
-	AppId string `json:"-"`
-	Sn    string `json:"sn"`
-	Ts    int64  `json:"ts"`
-	Sign  string `json:"sign"`
+type PrdNameReq struct {
+	Req
+	Name string `json:"name"`
 }
 
-// 实现 IEncrypt
-func (reply *PrdSnReqReply) EncryptInfo() string {
-	return reply.AppId
-}
-func (reply *PrdSnReqReply) SetSign(sign string, ts int64) error {
-	reply.Sign = sign
-	reply.Ts = ts
+func (req *PrdNameReq) Validate() error {
+	if req.Name == "" {
+		return errors.New("name required")
+	}
 	return nil
+}
+
+type PublicProductReply struct {
+	Req
+	UnionId                  string  `json:"union_id"`
+	Avatar                   string  `json:"avatar"`
+	Cover                    string  `json:"cover"`
+	Sn                       string  `json:"sn"`
+	Name                     string  `json:"name"`
+	Pinyin                   string  `json:"pinyin"`
+	BrandName                string  `json:"brand_name"`
+	Feature                  string  `json:"feature"`
+	Price                    int64   `json:"price"`
+	Spec                     int64   `json:"spec"`
+	SpecName                 string  `json:"spec_name"`
+	SpecWeight               int64   `json:"spec_weight"`
+	PkAmount                 int64   `json:"pk_amount"`
+	PkWeight                 int64   `json:"pk_weight"`
+	PackName                 string  `json:"pack_name"`
+	KeepLife                 int64   `json:"keep_life"`
+	KeepLifeUnit             string  `json:"keep_life_unit"`
+	StorageConditions        string  `json:"storage_conditions"`
+	TransportationConditions string  `json:"transportation_conditions"`
+	Unit                     string  `json:"unit"`
+	Habitat                  string  `json:"habitat"`
+	Style                    int64   `json:"style"`
+	StyleType                int64   `json:"style_type"`
+	Units                    []Units `json:"units"`
+	Status                   int64   `json:"status"`
 }
 
 /*
@@ -94,70 +112,65 @@ type ProductLiteModel struct {
 	Name string `json:"name"`
 }
 
+/**
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '产品id',
+  `union_id` varchar(45) NOT NULL COMMENT '隐藏直实Id',
+  `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '封面',
+  `cover` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '背面',
+  `sn` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '产品编号',
+  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '产品名称',
+  `pinyin` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '首拼字母(SPZM)',
+  `brand_name` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '商品品牌',
+  `feature` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '产品卖点',
+  `price` bigint(20) NOT NULL DEFAULT '0' COMMENT '零售价格、不低于a_price',
+  `spec` int(11) NOT NULL DEFAULT '0' COMMENT '规格',
+  `spec_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '瓶' COMMENT '最小规格名称，袋、瓶',
+  `spec_weight` int(11) NOT NULL DEFAULT '0' COMMENT '最小规格重量（含包装）',
+  `pk_amount` int(11) NOT NULL DEFAULT '1' COMMENT '装箱数量',
+  `pk_weight` int(11) NOT NULL DEFAULT '1' COMMENT '装箱后总重量（包含包装）',
+  `pack_name` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '箱' COMMENT '打包后的名称',
+  `keep_life` mediumint(9) NOT NULL DEFAULT '0' COMMENT '开启保质期(需要开起批次号)',
+  `keep_life_unit` varchar(64) NOT NULL DEFAULT '天' COMMENT '1*24表天，7*24表周，30*24表月，365*24表年，默认天',
+  `storage_conditions` varchar(64) NOT NULL DEFAULT '' COMMENT '保存方法',
+  `transportation_conditions` varchar(64) NOT NULL DEFAULT '' COMMENT '运输条件',
+  `unit` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'g' COMMENT '计量单位名默认g(克)还有ml(毫升)等',
+  `habitat` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '产地（主要用于源材料）',
+  `style` tinyint(4) NOT NULL DEFAULT '0' COMMENT '包装方式1预包装，2散装',
+  `style_type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '1 称重2 量体3 点数\r\n',
+  `units` varchar(512) NOT NULL DEFAULT '' COMMENT '扩展规格',
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '1有效',
+  `intime` int(11) NOT NULL DEFAULT '0' COMMENT '入库时间',
+*/
+
 type ProductModel struct {
-	Id      int64  `json:"id"`
-	OpenId  string `json:"open_id"`
-	ShopId  int64  `json:"shop_id"`
-	Sn      string `json:"sn"`
-	Avatar  string `json:"avatar"`
-	Cover   string `json:"cover"`
-	Name    string `json:"name"`
-	Pinyin  string `json:"pinyin"`
-	Feature string `json:"feature"`
-
-	Style     int64 `json:"style"`
-	StyleType int64 `json:"style_type"`
-	Num       int64 `json:"num,omitempty"`
-	Total     int64 `json:"total,omitempty"`
-
-	Source     int64 `json:"source"`
-	Price      int64 `json:"price"`
-	Type       int64 `json:"type"`
-	LinePrice  int64 `json:"line_price"`
-	SaleNum    int64 `json:"sale_num"`
-	Times      int64 `json:"times"`
-	PkWeight   int64 `json:"pk_weight"`
-	SpecId     int64 `json:"spec_id"`
-	SpecWeight int64 `json:"spec_weight"`
-	// 200g*20袋 = 箱
-	Spec     int64    `json:"spec"`
-	Unit     string   `json:"unit"`
-	PkAmount int64    `json:"pk_amount"`
-	SpecName string   `json:"spec_name"`
-	PackName string   `json:"pack_name"`
-	Units    []*Units `json:"units" ignore:"i"`
-	// 库存
-	Stock int64  `json:"stock"`
-	Tags  string `json:"tags"`
-	Sort  int64  `json:"sort"`
-	// 内部
-	Mark   string `json:"mark"`
-	Status int64  `json:"status"`
-	// 经手人
-	HandlerId   int64  `json:"handler_id"`
-	HandlerName string `json:"handler_name"`
-	// 品牌
-	BrandId   int64  `json:"brand_id"`
-	BrandName string `json:"brand_name"`
-	// 单价
-	UnitPrice int64 `json:"unit_price"`
-	PackPrice int64 `json:"pack_price"`
-	// 成本
-	Cost int64 `json:"cost"`
-	//保质期（天）
-	KeepLife int64 `json:"keep_life"`
-	// 保质期单位
-	KeepLifeUnit string `json:"keep_life_unit"`
-	// 分类
-	CategoryId   int64   `json:"category_id,omitempty"`
-	CategoryName string  `json:"category_name"`
-	SupplierId   int64   `json:"supplier_id,omitempty"`
-	SupplierName string  `json:"supplier_name"`
-	SuppIds      []int64 `json:"supplier_ids,omitempty"`
-	Intime       int64   `json:"intime,omitempty"`
+	UnionId                  string  `json:"union_id"`
+	Avatar                   string  `json:"avatar"`
+	Cover                    string  `json:"cover"`
+	Sn                       string  `json:"sn"`
+	Name                     string  `json:"name"`
+	Pinyin                   string  `json:"pinyin"`
+	BrandName                string  `json:"brand_name"`
+	Feature                  string  `json:"feature"`
+	Price                    int64   `json:"price"`
+	Spec                     int64   `json:"spec"`
+	SpecName                 string  `json:"spec_name"`
+	SpecWeight               int64   `json:"spec_weight"`
+	PkAmount                 int64   `json:"pk_amount"`
+	PkWeight                 int64   `json:"pk_weight"`
+	PackName                 string  `json:"pack_name"`
+	KeepLife                 int64   `json:"keep_life"`
+	KeepLifeUnit             string  `json:"keep_life_unit"`
+	StorageConditions        string  `json:"storage_conditions"`
+	TransportationConditions string  `json:"transportation_conditions"`
+	Unit                     string  `json:"unit"`
+	Habitat                  string  `json:"habitat"`
+	Style                    int64   `json:"style"`
+	StyleType                int64   `json:"style_type"`
+	Units                    []Units `json:"units"`
+	Status                   int64   `json:"status"`
 }
 
-func (s *Store) GetPublicProductBySn(ctx context.Context, req *PrdSnReq, reply *PrdSnReqReply) error {
+func (s *Store) GetPublicProductBySn(ctx context.Context, req *PrdSnReq, reply *PublicProductReply) error {
 	// 1 日志
 	log := lager.FromContext(ctx)
 	defer log.Sync()
@@ -174,6 +187,31 @@ func (s *Store) GetPublicProductBySn(ctx context.Context, req *PrdSnReq, reply *
 		log.ErrorExit("GetPublicProductBySn Query err", err)
 		return lang.Error("msg_public_product_not_found", err.Error())
 	}
+	reply.AppId = req.AppId
 	reply.Sn = productModel.Sn
+	reply.Name = productModel.Name
+	reply.UnionId = productModel.UnionId
+	reply.Avatar = productModel.Avatar
+	reply.Cover = productModel.Cover
+	reply.Pinyin = productModel.Pinyin
+	reply.BrandName = productModel.BrandName
+	reply.Feature = productModel.Feature
+	reply.Price = productModel.Price
+	reply.Spec = productModel.Spec
+	reply.SpecName = productModel.SpecName
+	reply.SpecWeight = productModel.SpecWeight
+	reply.PkAmount = productModel.PkAmount
+	reply.PkWeight = productModel.PkWeight
+	reply.PackName = productModel.PackName
+	reply.KeepLife = productModel.KeepLife
+	reply.KeepLifeUnit = productModel.KeepLifeUnit
+	reply.StorageConditions = productModel.StorageConditions
+	reply.TransportationConditions = productModel.TransportationConditions
+	reply.Unit = productModel.Unit
+	reply.Habitat = productModel.Habitat
+	reply.Style = productModel.Style
+	reply.StyleType = productModel.StyleType
+	reply.Units = productModel.Units
+	reply.Status = productModel.Status
 	return nil
 }

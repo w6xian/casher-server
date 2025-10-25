@@ -13,11 +13,27 @@ type Req struct {
 	Lang    string         `json:"lang"`
 	AppId   string         `json:"app_id"`
 	TrackId string         `json:"track_id"`
+	Ts      int64          `json:"ts"`
+	Sign    string         `json:"sign"`
 	Tracker *lager.Tracker `json:"-"`
+}
+
+func (req *Req) DecryptInfo() (string, int64) {
+	return req.Sign, req.Ts
 }
 
 func (req *Req) GetTrackInfo(ctx context.Context) (string, string, string) {
 	return req.AppId, req.TrackId, req.Lang
+}
+
+// 实现 IEncrypt
+func (reply *Req) EncryptInfo() string {
+	return reply.AppId
+}
+func (reply *Req) SetSign(sign string, ts int64) error {
+	reply.Sign = sign
+	reply.Ts = ts
+	return nil
 }
 
 type ShopInfoReq struct {

@@ -10,7 +10,7 @@ func setSign(req IEncrypt) error {
 	appId := req.EncryptInfo()
 	// 校验 appId 是否为空
 	if appId == "" {
-		return fmt.Errorf("appId is empty")
+		return fmt.Errorf("server setSign appId is empty")
 	}
 	ts := time.Now().Unix()
 	// appId + ts 签名 RsaEncrypt
@@ -31,7 +31,7 @@ func setSign(req IEncrypt) error {
 func checkSign(req IDecrypt, appId string) error {
 	sign, ts := req.DecryptInfo()
 	if appId == "" {
-		return fmt.Errorf("appId is empty")
+		return fmt.Errorf("server checkSign appId is empty")
 	}
 	// 校验 ts 是否为空
 	if ts == 0 {
