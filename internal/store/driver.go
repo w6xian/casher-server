@@ -44,4 +44,7 @@ type Driver interface {
 	// QueryPublicCompanyBySn 根据公司编码查询公司
 	QueryPublicCompanyBySn(link sqlm.ITable, sn string) ([]*CompanyLiteModel, error)
 	// QueryPublicCompanyByName 根据公司名称查询公司
+
+	//订单
+	QueryOrders(link sqlm.ITable, proxyId int64, mobile string) (*SyncOrdersReply, error)
 }
