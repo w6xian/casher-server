@@ -6,11 +6,11 @@ import (
 	"fmt"
 )
 
-// SyncOrders 同步订单信息
-func (c *Shop) SyncOrders(ctx context.Context, req *store.SyncRequest, reply *store.SyncOrdersReply) error {
+// AsyncOrders 异步订单信息
+func (c *Shop) AsyncOrders(ctx context.Context, req *store.AsyncRequest, reply *store.AsyncOrdersReply) error {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Printf("SyncOrders recover: %v\r\n", err)
+			fmt.Printf("AsyncOrders recover: %v\r\n", err)
 		}
 	}()
 	//空方法
@@ -32,7 +32,7 @@ func (c *Shop) SyncOrders(ctx context.Context, req *store.SyncRequest, reply *st
 		return vErr
 	}
 	// 2 调用数据库查询商品信息
-	err = c.Store.SyncOrders(ctx, req, reply)
+	err = c.Store.AsyncOrders(ctx, req, reply)
 	if err != nil {
 		return err
 	}

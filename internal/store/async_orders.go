@@ -6,29 +6,29 @@ import (
 )
 
 // 同一个请求，同步商品信息
-type SyncRequest struct {
+type AsyncRequest struct {
 	Req
-	OpenId   string `json:"open_id"`
-	LastTime int64  `json:"last_time"`
-	CloudId  int64  `json:"cloud_id"`
+	LastTime int64 `json:"last_time"`
+	CloudId  int64 `json:"cloud_id"`
+	Limit    int64 `json:"limit"`
 }
 
-func (req *SyncRequest) Validate() error {
+func (req *AsyncRequest) Validate() error {
 	if req.OpenId == "" {
-		return req.Tracker.Error("sync_orders_validate", "请输入open_id")
+		return req.Tracker.Error("async_orders_validate", "请输入open_id")
 	}
 	return nil
 }
 
 // 返回同步商品信息
-type SyncProductReply struct {
+type AsyncProductReply struct {
 	Req
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 }
 
 // 返回商品扩展信息（品牌，分类，规格等）
-type SyncProductExtraReply struct {
+type AsyncProductExtraReply struct {
 	Req
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
@@ -70,6 +70,7 @@ type SyncProductExtraReply struct {
 	`intime` int(11) NOT NULL DEFAULT '0' COMMENT '入库时间',
 */
 type OrderLite struct {
+	Id int64 `json:"id"`
 	// 订单ID
 	TrackId int64 `json:"track_id"`
 	// 订单号
@@ -130,7 +131,7 @@ type OrderLite struct {
 }
 
 // 返回同步订单信息
-type SyncOrdersReply struct {
+type AsyncOrdersReply struct {
 	Req
 	// 同步订单信息
 	Orders []*OrderLite `json:"orders"`
@@ -138,25 +139,25 @@ type SyncOrdersReply struct {
 	TotalNum int64 `json:"total_num"`
 }
 
-func (s *Store) SyncOrders(ctx context.Context, req *SyncRequest, reply *SyncOrdersReply) error {
+func (s *Store) AsyncOrders(ctx context.Context, req *AsyncRequest, reply *AsyncOrdersReply) error {
 	// 1 日志
 	log := lager.FromContext(ctx)
 	defer log.Sync()
-	log.SetOperation("SyncOrders", "SyncOrders", "async")
+	log.SetOperation("AsyncOrders", "AsyncOrders", "async")
 	// 2 获取数据库连接
 	link := s.GetLink(ctx)
 	// 2.1 数据驱动
 	db := s.GetDriver()
 	// 2.2 语言
 	lang := req.Tracker
-	proxyId := int64(0)
-	mobile := ""
 	// 3 查询订单信息
-	res, err := db.QueryOrders(link, proxyId, mobile)
+	res, err := db.QueryOrders(link, req)
 	if err != nil {
 		log.ErrorExit("QueryOrders Query err", err)
 		return lang.Error("msg_orders_not_found", err.Error())
 	}
+
+	reply.AppId = req.AppId
 	reply.Orders = res.Orders
 	reply.TotalNum = res.TotalNum
 	return nil

@@ -11,6 +11,7 @@ import (
 
 type Req struct {
 	Lang    string         `json:"lang"`
+	OpenId  string         `json:"open_id"`
 	AppId   string         `json:"app_id"`
 	TrackId string         `json:"track_id"`
 	Ts      int64          `json:"ts"`
@@ -24,6 +25,10 @@ func (req *Req) DecryptInfo() (string, int64) {
 
 func (req *Req) GetTrackInfo(ctx context.Context) (string, string, string) {
 	return req.AppId, req.TrackId, req.Lang
+}
+
+func (req *Req) GetOpenId(ctx context.Context) string {
+	return req.OpenId
 }
 
 // 实现 IEncrypt
@@ -175,4 +180,21 @@ func (s *Store) ShopLink(ctx context.Context, req *ShopLinkReq, reply *ShopLinkR
 	reply.Mark = shop.Mark
 	reply.Status = shop.Status
 	return nil
+}
+
+func (s *Store) GetShopInfo(ctx context.Context, appId string) (*ShopLinkReqReply, error) {
+	// 1 日志
+	log := lager.FromContext(ctx)
+	defer log.Sync()
+	log.SetOperation("GetShopInfo", "GetShopInfo", "Supp")
+	// 2 获取数据库连接
+	link := s.GetLink(ctx)
+	// 2.1 数据驱动
+	db := s.GetDriver()
+	// 2.2 获取店铺信息
+	shop, err := db.GetShopByAppId(link, appId)
+	if err != nil {
+		return nil, err
+	}
+	return shop, nil
 }

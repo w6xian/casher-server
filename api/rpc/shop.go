@@ -19,10 +19,23 @@ func (v *Shop) Start(ctx context.Context) (context.Context, func()) {
 }
 func (v *Shop) GetTracker(ctx context.Context, req lager.ITracker) *lager.Tracker {
 	appId, trackId, lang := req.GetTrackInfo(ctx)
+	openId := req.GetOpenId(ctx)
+	shop, err := v.Store.GetShopInfo(ctx, openId)
+	if err != nil {
+		return &lager.Tracker{
+			AppId:   appId,
+			TrackId: trackId,
+			Lang:    lang,
+		}
+	}
 	return &lager.Tracker{
 		AppId:   appId,
 		TrackId: trackId,
 		Lang:    lang,
+		ProxyId: shop.ProxyId,
+		ComId:   shop.ComId,
+		StoreId: shop.StoreId,
+		ShopId:  shop.Id,
 	}
 }
 

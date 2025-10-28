@@ -6,11 +6,19 @@ import (
 	"github.com/w6xian/sqlm"
 )
 
-func (db *DB) QueryOrders(link sqlm.ITable, proxyId int64, mobile string) (*store.SyncOrdersReply, error) {
-	reply := &store.SyncOrdersReply{}
-	orders, err := link.Table(store.TABLE_COM_ADMIN).
-		Where("username = '%s'", mobile).
-		AndOption(proxyId > 0, "proxy_id = %d", proxyId).
+func (db *DB) QueryOrders(link sqlm.ITable, req *store.AsyncRequest) (*store.AsyncOrdersReply, error) {
+	reply := &store.AsyncOrdersReply{}
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	orders, err := link.Table(store.TABLE_COM_SHOPS_ORDERS).
+		Where("proxy_id=%d", req.Tracker.ProxyId).
+		And("com_id=%d", req.Tracker.ComId).
+		And("shop_id=%d", req.Tracker.ShopId).
+		And("id > %d", req.CloudId).
+		OrderASC("id").
+		Limit(limit).
 		QueryMulti()
 	if err != nil {
 		return nil, err
@@ -22,5 +30,18 @@ func (db *DB) QueryOrders(link sqlm.ITable, proxyId int64, mobile string) (*stor
 	if err != nil {
 		return nil, err
 	}
+	row, err := link.Table(store.TABLE_COM_SHOPS_ORDERS).
+		Count().
+		Where("proxy_id=%d", req.Tracker.ProxyId).
+		And("com_id=%d", req.Tracker.ComId).
+		And("shop_id=%d", req.Tracker.ShopId).
+		And("id > %d", req.CloudId).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	c := row.Get("total").NullInt64()
+	reply.Orders = os
+	reply.TotalNum = c.Int64
 	return reply, nil
 }

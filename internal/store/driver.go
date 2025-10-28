@@ -46,5 +46,5 @@ type Driver interface {
 	// QueryPublicCompanyByName 根据公司名称查询公司
 
 	//订单
-	QueryOrders(link sqlm.ITable, proxyId int64, mobile string) (*SyncOrdersReply, error)
+	QueryOrders(link sqlm.ITable, req *AsyncRequest) (*AsyncOrdersReply, error)
 }

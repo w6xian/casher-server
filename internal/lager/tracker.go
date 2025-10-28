@@ -12,12 +12,17 @@ import (
 type ITracker interface {
 	// appid, trackid, lang
 	GetTrackInfo(ctx context.Context) (string, string, string)
+	GetOpenId(ctx context.Context) string
 }
 
 type Tracker struct {
 	AppId   string `json:"app_id"`
 	TrackId string `json:"track_id"`
 	Lang    string `json:"lang"`
+	ProxyId int64  `json:"proxy_id"`
+	ComId   int64  `json:"com_id"`
+	StoreId int64  `json:"store_id"`
+	ShopId  int64  `json:"shop_id"`
 }
 
 // Error 错误日志
