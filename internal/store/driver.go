@@ -47,4 +47,5 @@ type Driver interface {
 
 	//订单
 	QueryOrders(link sqlm.ITable, req *AsyncRequest) (*AsyncOrdersReply, error)
+	SelectOrderItems(link sqlm.ITable, orderId int64) ([]*OrderLiteItem, error)
 }

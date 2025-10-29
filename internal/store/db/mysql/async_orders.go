@@ -45,3 +45,20 @@ func (db *DB) QueryOrders(link sqlm.ITable, req *store.AsyncRequest) (*store.Asy
 	reply.TotalNum = c.Int64
 	return reply, nil
 }
+
+func (db *DB) SelectOrderItems(link sqlm.ITable, orderId int64) ([]*store.OrderLiteItem, error) {
+	items := []*store.OrderLiteItem{}
+	rows, err := link.Table(store.TABLE_COM_SHOPS_ORDERS_ITEMS).
+		Where("so_id=%d", orderId).
+		QueryMulti()
+	if err != nil {
+		return nil, err
+	}
+	err = rows.Scan(&items, func(row *sqlm.Row) any {
+		return &store.OrderLiteItem{}
+	})
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
+}
