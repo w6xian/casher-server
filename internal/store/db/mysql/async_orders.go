@@ -12,7 +12,7 @@ func (db *DB) QueryOrders(link sqlm.ITable, req *store.AsyncRequest) (*store.Asy
 	if limit <= 0 {
 		limit = 10
 	}
-	orders, err := link.Table(store.TABLE_COM_SHOPS_ORDERS).
+	orders, err := link.Table(store.TABLE_MALL_SO).
 		Where("proxy_id=%d", req.Tracker.ProxyId).
 		And("com_id=%d", req.Tracker.ComId).
 		And("shop_id=%d", req.Tracker.ShopId).
@@ -30,7 +30,7 @@ func (db *DB) QueryOrders(link sqlm.ITable, req *store.AsyncRequest) (*store.Asy
 	if err != nil {
 		return nil, err
 	}
-	row, err := link.Table(store.TABLE_COM_SHOPS_ORDERS).
+	row, err := link.Table(store.TABLE_MALL_SO).
 		Count().
 		Where("proxy_id=%d", req.Tracker.ProxyId).
 		And("com_id=%d", req.Tracker.ComId).
@@ -48,7 +48,7 @@ func (db *DB) QueryOrders(link sqlm.ITable, req *store.AsyncRequest) (*store.Asy
 
 func (db *DB) SelectOrderItems(link sqlm.ITable, orderId int64) ([]*store.OrderLiteItem, error) {
 	items := []*store.OrderLiteItem{}
-	rows, err := link.Table(store.TABLE_COM_SHOPS_ORDERS_ITEMS).
+	rows, err := link.Table(store.TABLE_MALL_SO_ITEMS).
 		Where("so_id=%d", orderId).
 		QueryMulti()
 	if err != nil {

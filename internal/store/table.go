@@ -17,6 +17,6 @@ const (
 	TABLE_CLOUD_PUBLIC_PRODUCTS  = "cloud_public_products"
 	TABLE_CLOUD_PUBLIC_COMPANIES = "cloud_public_companies"
 	// 订单表
-	TABLE_COM_SHOPS_ORDERS       = "com_shops_orders"
-	TABLE_COM_SHOPS_ORDERS_ITEMS = "com_shops_orders_items"
+	TABLE_MALL_SO       = "mall_so"
+	TABLE_MALL_SO_ITEMS = "mall_so_items"
 )
