@@ -19,4 +19,17 @@ const (
 	// 订单表
 	TABLE_MALL_SO       = "mall_so"
 	TABLE_MALL_SO_ITEMS = "mall_so_items"
+	// 商品项表
+	TABLE_COM_SHOPS_PRODUCTS = "com_shops_products"
+	// 品牌
+	TABLE_CRM_BRANDS = "crm_brands"
+	// 商品分类
+	TABLE_COM_PRODUCTS_CATEGORIES = "com_products_categories"
+	// 会员
+	TABLE_COM_SHOPS_USERS        = "com_shops_users"
+	TABLE_COM_SHOPS_USERS_LEVELS = "com_shops_users_levels"
+	// 会员标签表
+	TABLE_COM_SHOPS_USERS_TAGS = "com_shops_users_tags"
+	// 供应商表
+	TABLE_CRM_SUPPLIERS = "crm_supplier"
 )

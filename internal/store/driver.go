@@ -48,4 +48,12 @@ type Driver interface {
 	//订单
 	QueryOrders(link sqlm.ITable, req *AsyncRequest) (*AsyncOrdersReply, error)
 	SelectOrderItems(link sqlm.ITable, orderId int64) ([]*OrderLiteItem, error)
+	//商品
+	QueryProducts(link sqlm.ITable, req *AsyncRequest) (*AsyncProductsReply, error)
+	QueryProductsExtra(link sqlm.ITable, req *AsyncRequest) (*AsyncProductsExtraReply, error)
+	//用户
+	QueryUsers(link sqlm.ITable, req *AsyncRequest) (*AsyncUsersReply, error)
+	QueryUsersExtra(link sqlm.ITable, req *AsyncRequest) (*AsyncUsersExtraReply, error)
+	// supplier
+	QuerySuppliers(link sqlm.ITable, req *AsyncRequest) (*AsyncSuppliersReply, error)
 }
