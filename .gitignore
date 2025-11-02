@@ -2,3 +2,4 @@
 casher-server.exe
 *.log
 conf.toml
+*.toml

@@ -161,15 +161,11 @@ func (p *Deamon) Stop(s service.Service) error {
 }
 
 func (h *Deamon) initConfig() {
-	h.FlagSet.String("config", "conf.toml", "path to config file")
+	h.FlagSet.String("config", "conf", "path to config file")
 	configFile := h.FlagSet.Lookup("config").Value.String()
-	fmt.Println("configFile=", configFile)
 	// 文件里读取配置
-	err := h.Profile.FromFile(configFile, config.TOML)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(0)
-	}
+	parser := config.FromFiles(configFile, config.TOML)
+	parser.Unmarshal(h.Profile)
 }
 
 func (h *Deamon) initLanguage() {

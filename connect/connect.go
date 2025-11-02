@@ -53,6 +53,7 @@ func (c *Connect) Server() {
 		})
 	}
 	operator := new(DefaultOperator)
+	fmt.Println("Buckets:", Buckets)
 	DefaultServer = NewServer(Buckets, operator, c.Profile, c.Lager)
 	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
 	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))

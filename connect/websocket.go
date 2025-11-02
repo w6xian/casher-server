@@ -6,6 +6,7 @@
 package connect
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -24,6 +25,7 @@ func (c *Connect) serveWs(server *Server, w http.ResponseWriter, r *http.Request
 		ReadBufferSize:  server.Profile.Server.ReadBufferSize,
 		WriteBufferSize: server.Profile.Server.WriteBufferSize,
 	}
+	fmt.Println("ws addr:", server.Profile.Server.WsAddr)
 	//cross origin domain support
 	upGrader.CheckOrigin = func(r *http.Request) bool { return true }
 

@@ -138,10 +138,6 @@ func (opts *Profile) SetLogger(log StdLog) *Profile {
 func (opts *Profile) GetLogger() StdLog {
 	return opts.log
 }
-func (opts *Profile) FromFile(f string, t string) error {
-	MustLoad(f, opts, t)
-	return nil
-}
 
 func NewProfile() *Profile {
 	id := uuid.New()

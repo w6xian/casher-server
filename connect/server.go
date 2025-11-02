@@ -106,7 +106,7 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		ch.conn.SetReadDeadline(time.Now().Add(s.Profile.Server.PongWait))
 		return nil
 	})
-
+	fmt.Println("readPump start ...")
 	for {
 		_, message, err := ch.conn.ReadMessage()
 		if err != nil {

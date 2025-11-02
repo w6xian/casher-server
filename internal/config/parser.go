@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -9,14 +10,46 @@ import (
 	"github.com/spf13/viper"
 )
 
-// f可以传目录也可以传文件
-func MustLoad(f string, val any, configType string) error {
-	readAllConfig(f, configType)
-	err := viper.Unmarshal(val)
+/**
+* 如果是目录，需要一个文件一个文件的绑定
+ */
+
+type Unmarshal interface {
+	Unmarshal(rawVal any, opts ...viper.DecoderConfigOption) error
+}
+type Parser struct {
+}
+
+func (p *Parser) Unmarshal(rawVal any, opts ...viper.DecoderConfigOption) error {
+	return viper.Unmarshal(rawVal, opts...)
+}
+
+func FromFiles(f string, t string) Unmarshal {
+	env := GetMode()
+	parser := &Parser{}
+	fi, err := os.Stat(f)
 	if err != nil {
-		panic(err)
+		d := fmt.Sprintf("%s.%s.%s", f, env, t)
+		if _, err := os.Stat(d); err == nil {
+			readAllConfig(d, t)
+			return parser
+		} else {
+			panic(err)
+		}
 	}
-	return nil
+	if fi.IsDir() {
+		f = f + "/" + env + "/"
+	}
+	readAllConfig(f, t)
+	return parser
+}
+
+func GetMode() string {
+	env := os.Getenv("RUN_MODE")
+	if env == "" {
+		env = "dev"
+	}
+	return env
 }
 
 func readAllConfig(fPath string, configType string) {
