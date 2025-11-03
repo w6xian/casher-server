@@ -1,4 +1,4 @@
-package rpc
+package proto
 
 import (
 	"casher-server/internal/jwt/secret"

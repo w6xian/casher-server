@@ -49,23 +49,23 @@ type CheckAuthRequest struct {
 
 type CheckAuthResponse struct {
 	Code     int
-	UserId   int
+	UserId   int64
 	UserName string
 }
 
 type ConnectRequest struct {
-	AuthToken string `json:"authToken"`
-	RoomId    int    `json:"roomId"`
-	ServerId  string `json:"serverId"`
+	AuthToken string `json:"auth_token"`
+	RoomId    int64  `json:"room_id"`
+	ServerId  string `json:"server_id"`
 }
 
 type ConnectReply struct {
-	UserId int
+	UserId int64
 }
 
 type DisConnectRequest struct {
-	RoomId int
-	UserId int
+	RoomId int64 `json:"room_id"`
+	UserId int64 `json:"user_id"`
 }
 
 type DisConnectReply struct {
@@ -75,24 +75,24 @@ type DisConnectReply struct {
 type Send struct {
 	Code         int    `json:"code"`
 	Msg          string `json:"msg"`
-	FromUserId   int    `json:"fromUserId"`
-	FromUserName string `json:"fromUserName"`
-	ToUserId     int    `json:"toUserId"`
-	ToUserName   string `json:"toUserName"`
-	RoomId       int    `json:"roomId"`
+	FromUserId   int64  `json:"from_user_id"`
+	FromUserName string `json:"from_user_name"`
+	ToUserId     int64  `json:"to_user_id"`
+	ToUserName   string `json:"to_user_name"`
+	RoomId       int64  `json:"room_id"`
 	Op           int    `json:"op"`
-	CreateTime   string `json:"createTime"`
+	CreateTime   string `json:"create_time"`
 }
 
 type SendTcp struct {
 	Code         int    `json:"code"`
 	Msg          string `json:"msg"`
-	FromUserId   int    `json:"fromUserId"`
-	FromUserName string `json:"fromUserName"`
-	ToUserId     int    `json:"toUserId"`
-	ToUserName   string `json:"toUserName"`
-	RoomId       int    `json:"roomId"`
+	FromUserId   int64  `json:"from_user_id"`
+	FromUserName string `json:"from_user_name"`
+	ToUserId     int64  `json:"to_user_id"`
+	ToUserName   string `json:"to_user_name"`
+	RoomId       int64  `json:"room_id"`
 	Op           int    `json:"op"`
-	CreateTime   string `json:"createTime"`
-	AuthToken    string `json:"authToken"` //仅tcp时使用，发送msg时带上
+	CreateTime   string `json:"create_time"`
+	AuthToken    string `json:"auth_token"` //仅tcp时使用，发送msg时带上
 }

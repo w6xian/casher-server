@@ -15,10 +15,21 @@ import (
 
 	"casher-server/internal/config"
 	"casher-server/internal/i18n"
+	"casher-server/internal/server/router"
+	v1 "casher-server/internal/server/router/api/v1"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
 
+	"casher-server/internal/command"
+
 	"github.com/kardianos/service"
+	"github.com/louis-xie-programmer/go-local-cache/cache"
+
+	"casher-server/internal/queue"
+
+	"casher-server/internal/muxhttp/mw"
+
+	"github.com/gorilla/mux"
 	"github.com/soheilhy/cmux"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
@@ -104,37 +115,76 @@ func (p *Deamon) run(s service.Service) {
 	if err != nil {
 		panic(err)
 	}
-	storeInstance, err := store.New(dbDriver, p.Profile, logger)
+
+	//  缓存
+	m := cache.NewCache(cache.CacheOptions{
+		DefaultTTL:    10 * time.Second,
+		EmptyTTL:      2 * time.Second,
+		RefreshFactor: 0.3,
+		ShardCount:    8,
+		TotalMaxBytes: 1 << 20,
+	})
+
+	// 队列
+	sys := queue.NewSystem()
+	// 创建 Actor 池
+	actor := queue.NewPool(sys, "testpool", 2, 6)
+
+	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, actor)
 	if err != nil {
 		panic(err)
 	}
 	if err = storeInstance.Migrate(ctx); err != nil {
 		panic(err)
 	}
+	queueCmd := command.NewQueueCommand(ctx, p.Profile, logger, m)
+	// 队列自动扩缩容配置
+	workerProps := queue.Props{
+		ActorFunc:   queueCmd.ActorFunc,
+		Mailbox:     16,
+		Strategy:    queue.RestartOnFailure,
+		MaxRestarts: 3,
+		Window:      5 * time.Second,
+	}
+	actor.SetProps(workerProps)
+	autoCfg := queue.AutoScalerConfig{Interval: 500 * time.Millisecond, HighThreshold: 6, LowThreshold: 2, ScaleUpStep: 2, ScaleDownStep: 1, Cooldown: 2 * time.Second}
+	actor.StartAutoScaler(autoCfg)
 
 	ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("server ws addr:", p.Profile.Server.WsAddr)
+
+	wsLogic := connect.InitWsLogicServer()
+
+	r := mux.NewRouter()
+	r.Use(mw.CORSMethodMiddleware(p.Profile.Server.Origins))
+
 	muxServer := cmux.New(ln)
 	//Otherwise, we match it againts a websocket upgrade request.
-	wsListener := muxServer.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
+	// wsListener := muxServer.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
 	// wsl := m.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
-	// httpListener := muxServer.Match(cmux.HTTP1Fast())
+	httpListener := muxServer.Match(cmux.HTTP1Fast())
 	// rpcxListener := muxServer.Match(cmux.Any())
+
 	go func() {
+		api := v1.NewApi(ctx, p.Profile, logger, m, actor, wsLogic)
+		router.Register(ctx, r, api)
+		// 绑定路由到Http
+		http.Handle("/", r)
 		//初始化加入对应的
-		connect.New(p.Context, p.Profile, logger).Server()
-		http.Serve(wsListener, nil)
+		connect.New(p.Context, p.Profile, logger).Server(wsLogic)
+		http.Serve(httpListener, nil)
 	}()
 	go func() {
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance)
 	}()
-
-	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
-		panic(err)
-	}
+	go func() {
+		if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
+			panic(err)
+		}
+	}()
 
 }
 

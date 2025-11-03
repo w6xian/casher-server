@@ -13,9 +13,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func (c *Connect) InitWebsocket() error {
+func (c *Connect) InitWebsocket(wsLogic *WsLogic) error {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		c.serveWs(DefaultServer, w, r)
+		c.serveWs(wsLogic.Server, w, r)
 	})
 	return nil
 }
@@ -35,7 +35,9 @@ func (c *Connect) serveWs(server *Server, w http.ResponseWriter, r *http.Request
 		c.Lager.Error("serverWs err:%s", zap.Error(err))
 		return
 	}
+	// 一个连接一个channel
 	ch := NewChannel(server.Profile.Server.BroadcastSize)
+	fmt.Println("ch:", ch)
 	//default broadcast size eq 512
 	ch.conn = conn
 	//send data to websocket conn

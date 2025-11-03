@@ -10,10 +10,10 @@ import (
 )
 
 type Bucket struct {
-	cLock         sync.RWMutex     // protect the channels for chs
-	chs           map[int]*Channel // map sub key to a channel
+	cLock         sync.RWMutex       // protect the channels for chs
+	chs           map[int64]*Channel // map sub key to a channel
 	bucketOptions BucketOptions
-	rooms         map[int]*Room // bucket room channels
+	rooms         map[int64]*Room // bucket room channels
 	routines      []chan *proto.PushRoomMsgRequest
 	routinesNum   uint64
 	broadcast     chan []byte
@@ -28,10 +28,10 @@ type BucketOptions struct {
 
 func NewBucket(bucketOptions BucketOptions) (b *Bucket) {
 	b = new(Bucket)
-	b.chs = make(map[int]*Channel, bucketOptions.ChannelSize)
+	b.chs = make(map[int64]*Channel, bucketOptions.ChannelSize)
 	b.bucketOptions = bucketOptions
 	b.routines = make([]chan *proto.PushRoomMsgRequest, bucketOptions.RoutineAmount)
-	b.rooms = make(map[int]*Room, bucketOptions.RoomSize)
+	b.rooms = make(map[int64]*Room, bucketOptions.RoomSize)
 	for i := uint64(0); i < b.bucketOptions.RoutineAmount; i++ {
 		c := make(chan *proto.PushRoomMsgRequest, bucketOptions.RoutineSize)
 		b.routines[i] = c
@@ -53,14 +53,14 @@ func (b *Bucket) PushRoom(ch chan *proto.PushRoomMsgRequest) {
 	}
 }
 
-func (b *Bucket) Room(rid int) (room *Room) {
+func (b *Bucket) Room(rid int64) (room *Room) {
 	b.cLock.RLock()
 	room = b.rooms[rid]
 	b.cLock.RUnlock()
 	return
 }
 
-func (b *Bucket) Put(userId int, roomId int, ch *Channel) (err error) {
+func (b *Bucket) Put(userId int64, roomId int64, ch *Channel) (err error) {
 	var (
 		room *Room
 		ok   bool
@@ -103,7 +103,7 @@ func (b *Bucket) DeleteChannel(ch *Channel) {
 	b.cLock.RUnlock()
 }
 
-func (b *Bucket) Channel(userId int) (ch *Channel) {
+func (b *Bucket) Channel(userId int64) (ch *Channel) {
 	b.cLock.RLock()
 	ch = b.chs[userId]
 	b.cLock.RUnlock()

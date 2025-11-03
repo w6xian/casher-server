@@ -16,14 +16,14 @@ import (
 const NoRoom = -1
 
 type Room struct {
-	Id          int
+	Id          int64
 	OnlineCount int // room online user count
 	rLock       sync.RWMutex
 	drop        bool // make room is live
 	next        *Channel
 }
 
-func NewRoom(roomId int) *Room {
+func NewRoom(roomId int64) *Room {
 	room := new(Room)
 	room.Id = roomId
 	room.drop = false

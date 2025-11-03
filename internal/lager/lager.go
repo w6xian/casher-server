@@ -1,11 +1,13 @@
 package lager
 
 import (
+	"casher-server/internal/muxhttp"
 	"casher-server/internal/utils"
 	"context"
 	"encoding/json"
 	"fmt"
 	"maps"
+	"net/http"
 	"strings"
 
 	"go.uber.org/zap"
@@ -98,6 +100,16 @@ func FromContext(ctx context.Context) *LogReq {
 		logger = &LogReq{}
 	}
 	return logger
+}
+func RegLager(l *zap.Logger, info ...string) muxhttp.Decorator {
+	return func(f muxhttp.Handler) muxhttp.Handler {
+		return func(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+			ctx := context.WithValue(r.Context(), ContextKeyRegLog, l)
+			ctx1 := context.WithValue(ctx, ContextKeyLogMsg, info)
+			r = r.WithContext(ctx1)
+			return f(w, r)
+		}
+	}
 }
 
 // Http Request 加 lager

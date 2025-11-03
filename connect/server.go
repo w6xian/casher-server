@@ -7,6 +7,7 @@ package connect
 
 import (
 	"casher-server/internal/config"
+	"casher-server/internal/utils/id"
 	"casher-server/proto"
 	"casher-server/tools"
 	"encoding/json"
@@ -36,7 +37,7 @@ func NewServer(b []*Bucket, o Operator, profile *config.Profile, lager *zap.Logg
 }
 
 // reduce lock competition, use google city hash insert to different bucket
-func (s *Server) Bucket(userId int) *Bucket {
+func (s *Server) Bucket(userId int64) *Bucket {
 	userIdStr := fmt.Sprintf("%d", userId)
 	idx := tools.CityHash32([]byte(userIdStr), uint32(len(userIdStr))) % s.bucketIdx
 	return s.Buckets[idx]
@@ -77,6 +78,16 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 			if err := ch.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
+			cmd := proto.CmdReq{
+				Id:     id.ShortID(),
+				Ts:     time.Now().Unix(),
+				Action: 0xFF,
+				Data:   "ping",
+			}
+			if err := ch.conn.WriteJSON(cmd); err != nil {
+				c.Lager.Error("WriteJSON err  ", zap.String("err", err.Error()))
+				return
+			}
 		}
 	}
 }
@@ -106,7 +117,7 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		ch.conn.SetReadDeadline(time.Now().Add(s.Profile.Server.PongWait))
 		return nil
 	})
-	fmt.Println("readPump start ...")
+
 	for {
 		_, message, err := ch.conn.ReadMessage()
 		if err != nil {
@@ -115,24 +126,21 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 				return
 			}
 		}
+		fmt.Println("readPump message:", ch.userId, string(message))
 		if message == nil {
 			return
 		}
 		if ch.userId > 0 {
 			// 已登录过后，可以互动消息
 			s.operator.HandleMessage(ch, message)
-			return
+			continue
 		}
-		var connReq *proto.ConnectRequest
+		var connReq *proto.CmdReq
 		c.Lager.Info("get a message ", zap.ByteString("body", message))
 		if err := json.Unmarshal([]byte(message), &connReq); err != nil {
 			c.Lager.Error("message struct ", zap.String("err", err.Error()))
 		}
-		if connReq == nil || connReq.AuthToken == "" {
-			c.Lager.Error("s.operator.Connect no authToken")
-			return
-		}
-		connReq.ServerId = c.ServerId //config.Conf.Connect.ConnectWebsocket.ServerId
+
 		// 拿到用用户信息
 		userId, err := s.operator.Connect(connReq)
 		if err != nil {
@@ -141,13 +149,14 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		}
 		if userId == 0 {
 			c.Lager.Error("Invalid AuthToken ,userId empty")
-			return
+			// 登录不成功，就等着下一次登录
+			continue
 		}
-		c.Lager.Info("websocket rpc call return userId:%d,RoomId:%d", zap.Int("userId", userId), zap.Int("RoomId", connReq.RoomId))
+		c.Lager.Info("websocket rpc call return userId:%d,RoomId:%d", zap.Int64("userId", userId), zap.Int64("RoomId", connReq.RoomId))
 
 		b := s.Bucket(userId)
 		//insert into a bucket
-		err = b.Put(userId, connReq.RoomId, ch)
+		err = b.Put(userId, connReq.ProxyId, ch)
 		if err != nil {
 			c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
 			ch.conn.Close()

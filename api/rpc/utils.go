@@ -1,12 +1,13 @@
 package rpc
 
 import (
+	"casher-server/proto"
 	"fmt"
 	"time"
 )
 
 // 实现IEncrypt
-func setSign(req IEncrypt) error {
+func setSign(req proto.IEncrypt) error {
 	appId := req.EncryptInfo()
 	// 校验 appId 是否为空
 	if appId == "" {
@@ -15,7 +16,7 @@ func setSign(req IEncrypt) error {
 	ts := time.Now().Unix()
 	// appId + ts 签名 RsaEncrypt
 	code := fmt.Sprintf("%s:%d", appId, ts)
-	sign, err := RsaEncrypt([]byte(code), []byte(LOGIN_PUBLIC_KEY))
+	sign, err := proto.RsaEncrypt([]byte(code), []byte(proto.LOGIN_PUBLIC_KEY))
 	if err != nil {
 		return err
 	}
@@ -28,7 +29,7 @@ func setSign(req IEncrypt) error {
 }
 
 // 实现IDecrypt
-func checkSign(req IDecrypt, appId string) error {
+func checkSign(req proto.IDecrypt, appId string) error {
 	sign, ts := req.DecryptInfo()
 	if appId == "" {
 		return fmt.Errorf("server checkSign appId is empty")
@@ -42,7 +43,7 @@ func checkSign(req IDecrypt, appId string) error {
 		return fmt.Errorf("sign is empty")
 	}
 	// sign 解密 RsaDecrypt
-	code, err := RsaDecrypt([]byte(sign), []byte(LOGIN_PRIVATE_KEY))
+	code, err := proto.RsaDecrypt([]byte(sign), []byte(proto.LOGIN_PRIVATE_KEY))
 	if err != nil {
 		return err
 	}

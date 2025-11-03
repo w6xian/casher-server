@@ -2,23 +2,29 @@ package store
 
 import (
 	"casher-server/internal/config"
+	"casher-server/internal/queue"
 	"context"
 
+	"github.com/louis-xie-programmer/go-local-cache/cache"
 	"github.com/w6xian/sqlm"
 	"go.uber.org/zap"
 )
 
 type Store struct {
-	profile *config.Profile
-	driver  Driver
-	lager   *zap.Logger
+	profile   *config.Profile
+	driver    Driver
+	lager     *zap.Logger
+	cache     *cache.Cache
+	actorPool *queue.ActorPool
 }
 
-func New(driver Driver, opt *config.Profile, lager *zap.Logger) (*Store, error) {
+func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool) (*Store, error) {
 	store := &Store{
-		profile: opt,
-		driver:  driver,
-		lager:   lager,
+		profile:   opt,
+		driver:    driver,
+		lager:     lager,
+		cache:     cache,
+		actorPool: actorPool,
 	}
 	return store, nil
 }
