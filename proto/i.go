@@ -6,7 +6,6 @@ import (
 )
 
 type IEncrypt interface {
-	EncryptInfo() (appId string)
 	SetSign(sign string, ts int64) error
 }
 type IDecrypt interface {

@@ -36,12 +36,12 @@ func InitWsLogicServer() *WsLogic {
 	return WsLogicObjc
 }
 
-func (c *WsLogic) SendMsg(msgType string, data []byte) {
+func (c *WsLogic) Channel(ctx context.Context, userId int64, data []byte) {
 	if c.Server == nil {
 		return
 	}
-	b := c.Server.Bucket(1)
-	ch := b.Channel(1)
+	b := c.Server.Bucket(userId)
+	ch := b.Channel(userId)
 	if ch == nil {
 		return
 	}
@@ -49,14 +49,53 @@ func (c *WsLogic) SendMsg(msgType string, data []byte) {
 		Id:     id.ShortID(),
 		Ts:     time.Now().Unix(),
 		Action: 0xFF,
-		Data:   "ping",
+		Data:   data,
 	}
 	msg := &proto.Msg{
 		Body: cmd.Bytes(),
 	}
-
-	if err := ch.Push(msg); err != nil {
+	if err := ch.Push(ctx, msg); err != nil {
 		fmt.Println("Connect layer Push() error", zap.Error(err))
+	}
+}
+
+func (c *WsLogic) Room(ctx context.Context, roomId int64, data []byte) {
+	if c.Server == nil {
+		return
+	}
+	room := c.Server.Room(roomId)
+	if room == nil {
+		return
+	}
+
+	cmd := proto.CmdReq{
+		Id:     id.ShortID(),
+		Ts:     time.Now().Unix(),
+		Action: 0xFF,
+		Data:   data,
+	}
+	msg := &proto.Msg{
+		Body: cmd.Bytes(),
+	}
+	room.Push(ctx, msg)
+}
+
+func (c *WsLogic) Broadcast(ctx context.Context, data []byte) {
+	if c.Server == nil {
+		return
+	}
+
+	cmd := proto.CmdReq{
+		Id:     id.ShortID(),
+		Ts:     time.Now().Unix(),
+		Action: 0xFF,
+		Data:   data,
+	}
+	msg := &proto.Msg{
+		Body: cmd.Bytes(),
+	}
+	if err := c.Server.Broadcast(ctx, msg); err != nil {
+		return
 	}
 }
 
@@ -85,9 +124,9 @@ func (c *Connect) Server(wsLogic *WsLogic) {
 	bsNum := mathutil.Max(connectConfig.ConnectBucket.CpuNum, 1)
 	bsNum = mathutil.Min(bsNum, runtime.NumCPU())
 	//init Connect layer rpc server, logic client will call this
-	Buckets := make([]*Bucket, bsNum)
+	bs := make([]*Bucket, bsNum)
 	for i := 0; i < bsNum; i++ {
-		Buckets[i] = NewBucket(BucketOptions{
+		bs[i] = NewBucket(BucketOptions{
 			ChannelSize:   connectConfig.ConnectBucket.Channel,
 			RoomSize:      connectConfig.ConnectBucket.Room,
 			RoutineAmount: connectConfig.ConnectBucket.RoutineAmount,
@@ -95,8 +134,7 @@ func (c *Connect) Server(wsLogic *WsLogic) {
 		})
 	}
 	operator := new(DefaultOperator)
-	fmt.Println("Buckets:", Buckets)
-	wsLogic.Server = NewServer(Buckets, operator, c.Profile, c.Lager)
+	wsLogic.Server = NewServer(bs, operator, c.Profile, c.Lager)
 	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
 	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))
 	//start Connect layer server handler persistent connection

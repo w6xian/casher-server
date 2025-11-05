@@ -5,6 +5,7 @@ package connect
 
 import (
 	"casher-server/proto"
+	"context"
 	"sync"
 	"sync/atomic"
 )
@@ -32,15 +33,16 @@ func NewBucket(bucketOptions BucketOptions) (b *Bucket) {
 	b.bucketOptions = bucketOptions
 	b.routines = make([]chan *proto.PushRoomMsgRequest, bucketOptions.RoutineAmount)
 	b.rooms = make(map[int64]*Room, bucketOptions.RoomSize)
+	ctx := context.Background()
 	for i := uint64(0); i < b.bucketOptions.RoutineAmount; i++ {
 		c := make(chan *proto.PushRoomMsgRequest, bucketOptions.RoutineSize)
 		b.routines[i] = c
-		go b.PushRoom(c)
+		go b.PushRoom(ctx, c)
 	}
 	return
 }
 
-func (b *Bucket) PushRoom(ch chan *proto.PushRoomMsgRequest) {
+func (b *Bucket) PushRoom(ctx context.Context, ch chan *proto.PushRoomMsgRequest) {
 	for {
 		var (
 			arg  *proto.PushRoomMsgRequest
@@ -48,7 +50,7 @@ func (b *Bucket) PushRoom(ch chan *proto.PushRoomMsgRequest) {
 		)
 		arg = <-ch
 		if room = b.Room(arg.RoomId); room != nil {
-			room.Push(&arg.Msg)
+			room.Push(ctx, &arg.Msg)
 		}
 	}
 }

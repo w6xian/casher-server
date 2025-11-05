@@ -5,6 +5,7 @@ import (
 	"casher-server/internal/config"
 	"casher-server/internal/muxhttp"
 	"casher-server/internal/queue"
+	"casher-server/internal/store"
 	"context"
 	"net/http"
 	"time"
@@ -20,9 +21,10 @@ type Api struct {
 	Cache   *cache.Cache
 	Actor   *queue.ActorPool
 	WsLogic *connect.WsLogic
+	Store   *store.Store
 }
 
-func NewApi(ctx context.Context, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool, wsLogic *connect.WsLogic) *Api {
+func NewApi(ctx context.Context, storeInstance *store.Store, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool, wsLogic *connect.WsLogic) *Api {
 	return &Api{
 		Context: ctx,
 		Profile: profile,
@@ -30,6 +32,7 @@ func NewApi(ctx context.Context, profile *config.Profile, lager *zap.Logger, cac
 		Cache:   cache,
 		Actor:   actor,
 		WsLogic: wsLogic,
+		Store:   storeInstance,
 	}
 }
 
@@ -56,4 +59,30 @@ func (v *Api) Get(key string, loader func(context.Context) (interface{}, time.Du
 
 func (v *Api) Tell(msg queue.Message) {
 	v.Actor.Tell(msg)
+}
+
+func (v *Api) DbConnectWithClose(ctx context.Context) (context.Context, func()) {
+	return v.Store.GetConnect(ctx), func() {
+		v.Store.CloseConnect(ctx)
+	}
+}
+func (v *Api) AnonymousTracker(req *http.Request) (*store.Tracker, error) {
+	tracker := store.NewAnonimousTracker(req.Context())
+	tracker.TrackId = muxhttp.GetRequestId(req)
+	tracker.Language = muxhttp.GetLanguage(req)
+	tracker.MachineNo = v.Profile.Machine.Id
+	tracker.MachineId = v.Profile.Machine.Code
+	return tracker, nil
+}
+func (v *Api) GetTracker(req *http.Request, checkLock bool) (*store.Tracker, error) {
+	if !checkLock {
+		return v.AnonymousTracker(req)
+	}
+
+	tracker := store.NewTracker()
+	tracker.TrackId = muxhttp.GetRequestId(req)
+	tracker.MachineNo = v.Profile.Machine.Id
+	tracker.MachineId = v.Profile.Machine.Code
+	tracker.Language = muxhttp.GetLanguage(req)
+	return tracker, nil
 }

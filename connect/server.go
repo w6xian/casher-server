@@ -10,6 +10,7 @@ import (
 	"casher-server/internal/utils/id"
 	"casher-server/proto"
 	"casher-server/tools"
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -41,6 +42,23 @@ func (s *Server) Bucket(userId int64) *Bucket {
 	userIdStr := fmt.Sprintf("%d", userId)
 	idx := tools.CityHash32([]byte(userIdStr), uint32(len(userIdStr))) % s.bucketIdx
 	return s.Buckets[idx]
+}
+
+func (s *Server) Room(roomId int64) *Room {
+	for _, b := range s.Buckets {
+		if room := b.Room(roomId); room != nil {
+			return room
+		}
+	}
+	return nil
+}
+func (s *Server) Broadcast(ctx context.Context, msg *proto.Msg) error {
+	for _, b := range s.Buckets {
+		for _, room := range b.rooms {
+			room.Push(ctx, msg)
+		}
+	}
+	return nil
 }
 
 func (s *Server) writePump(ch *Channel, c *Connect) {
@@ -78,6 +96,7 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 			if err := ch.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
+			fmt.Println("websocket.PingMessage success")
 			cmd := proto.CmdReq{
 				Id:     id.ShortID(),
 				Ts:     time.Now().Unix(),
@@ -126,8 +145,9 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 				return
 			}
 		}
-		fmt.Println("readPump message:", ch.userId, string(message))
 		if message == nil {
+			c.Lager.Error("message is nil")
+			fmt.Println("message is nil")
 			return
 		}
 		if ch.userId > 0 {
@@ -135,14 +155,15 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			s.operator.HandleMessage(ch, message)
 			continue
 		}
-		var connReq *proto.CmdReq
-		c.Lager.Info("get a message ", zap.ByteString("body", message))
-		if err := json.Unmarshal([]byte(message), &connReq); err != nil {
-			c.Lager.Error("message struct ", zap.String("err", err.Error()))
-		}
 
+		var connReq *proto.CmdReq
+		if reqErr := json.Unmarshal(message, &connReq); reqErr != nil {
+			c.Lager.Error("message struct ", zap.String("err", reqErr.Error()))
+			return
+		}
 		// 拿到用用户信息
-		userId, err := s.operator.Connect(connReq)
+		userId, roomId, err := s.operator.Connect(connReq)
+		fmt.Println("userId:", userId, "Connect err:", err)
 		if err != nil {
 			c.Lager.Error("s.operator.Connect error  ", zap.String("err", err.Error()))
 			return
@@ -156,10 +177,85 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 
 		b := s.Bucket(userId)
 		//insert into a bucket
-		err = b.Put(userId, connReq.ProxyId, ch)
+		err = b.Put(userId, roomId, ch)
 		if err != nil {
 			c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
 			ch.conn.Close()
 		}
 	}
 }
+
+// func (s *Server) readPump(ch *Channel, c *Connect) {
+// 	defer func() {
+// 		c.Lager.Info("start exec disConnect ...")
+// 		if ch.Room == nil || ch.userId == 0 {
+// 			c.Lager.Info("roomId and userId eq 0")
+// 			ch.conn.Close()
+// 			return
+// 		}
+// 		c.Lager.Info("exec disConnect ...")
+// 		disConnectRequest := new(proto.DisConnectRequest)
+// 		disConnectRequest.RoomId = ch.Room.Id
+// 		disConnectRequest.UserId = ch.userId
+// 		s.Bucket(ch.userId).DeleteChannel(ch)
+// 		if err := s.operator.DisConnect(disConnectRequest); err != nil {
+// 			c.Lager.Warn("DisConnect err  ", zap.String("err", err.Error()))
+// 		}
+// 		ch.conn.Close()
+// 	}()
+
+// 	ch.conn.SetReadLimit(s.Profile.Server.MaxMessageSize)
+// 	ch.conn.SetReadDeadline(time.Now().Add(s.Profile.Server.PongWait))
+// 	ch.conn.SetPongHandler(func(string) error {
+// 		ch.conn.SetReadDeadline(time.Now().Add(s.Profile.Server.PongWait))
+// 		return nil
+// 	})
+
+// 	for {
+// 		_, message, err := ch.conn.ReadMessage()
+// 		if err != nil {
+// 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+// 				c.Lager.Error("readPump ReadMessage err  ", zap.String("err", err.Error()))
+// 				return
+// 			}
+// 		}
+// 		fmt.Println("readPump message:", ch.userId, string(message))
+// 		if message == nil {
+// 			c.Lager.Error("message is nil")
+// 			fmt.Println("message is nil")
+// 			return
+// 		}
+// 		if ch.userId > 0 {
+// 			// 已登录过后，可以互动消息
+// 			s.operator.HandleMessage(ch, message)
+// 			continue
+// 		}
+// 		var connReq *proto.CmdReq
+// 		c.Lager.Info("get a message ", zap.ByteString("body", message))
+// 		if err := json.Unmarshal([]byte(message), &connReq); err != nil {
+// 			c.Lager.Error("message struct ", zap.String("err", err.Error()))
+// 		}
+// 		fmt.Println("connReq:", string(connReq.Bytes()))
+// 		// 拿到用用户信息
+// 		userId, err := s.operator.Connect(connReq)
+// 		fmt.Println("userId:", userId, "Connect err:", err)
+// 		if err != nil {
+// 			c.Lager.Error("s.operator.Connect error  ", zap.String("err", err.Error()))
+// 			return
+// 		}
+// 		if userId == 0 {
+// 			c.Lager.Error("Invalid AuthToken ,userId empty")
+// 			// 登录不成功，就等着下一次登录
+// 			continue
+// 		}
+// 		c.Lager.Info("websocket rpc call return userId:%d,RoomId:%d", zap.Int64("userId", userId), zap.Int64("RoomId", connReq.RoomId))
+
+// 		b := s.Bucket(userId)
+// 		//insert into a bucket
+// 		err = b.Put(userId, connReq.ProxyId, ch)
+// 		if err != nil {
+// 			c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
+// 			ch.conn.Close()
+// 		}
+// 	}
+// }

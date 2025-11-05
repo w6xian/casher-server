@@ -4,17 +4,13 @@ import (
 	"casher-server/proto"
 )
 
-type Operator interface {
-	Connect(conn *proto.CmdReq) (int64, error)
-	DisConnect(disConn *proto.DisConnectRequest) (err error)
-	HandleMessage(ch *Channel, message []byte)
-}
-
 type DefaultOperator struct {
 }
 
-func (o *DefaultOperator) Connect(conn *proto.CmdReq) (uid int64, err error) {
-	return 0, nil
+func (o *DefaultOperator) Connect(conn *proto.CmdReq) (userId int64, roomId int64, err error) {
+	userId = conn.UserId
+	roomId = conn.RoomId
+	return
 }
 
 func (o *DefaultOperator) DisConnect(disConn *proto.DisConnectRequest) (err error) {

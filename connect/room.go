@@ -7,6 +7,7 @@ package connect
 
 import (
 	"casher-server/proto"
+	"context"
 	"fmt"
 	"sync"
 
@@ -50,10 +51,10 @@ func (r *Room) Put(ch *Channel) (err error) {
 	return
 }
 
-func (r *Room) Push(msg *proto.Msg) {
+func (r *Room) Push(ctx context.Context, msg *proto.Msg) {
 	r.rLock.RLock()
 	for ch := r.next; ch != nil; ch = ch.Next {
-		if err := ch.Push(msg); err != nil {
+		if err := ch.Push(ctx, msg); err != nil {
 			fmt.Printf("push msg err:%s", err.Error())
 		}
 	}

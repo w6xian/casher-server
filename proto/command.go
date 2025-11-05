@@ -3,22 +3,20 @@ package proto
 import (
 	"casher-server/internal/utils"
 	"fmt"
-	"time"
 )
 
 type CmdReq struct {
-	DeviceId string `json:"device_id"`
-	TrackId  string `json:"track_id"`
-	Id       string `json:"id"`
-	Action   int    `json:"action"` // 操作类型
-	Data     any    `json:"data"`   // 操作数据
-	AppId    string `json:"app_id"`
-	ProxyId  int64  `json:"proxy_id"`
-	RoomId   int64  `json:"room_id"`
-	UserId   int64  `json:"user_id"`
-	Lang     string `json:"lang"`
-	Ts       int64  `json:"ts"`
-	Sign     string `json:"sign"`
+	Id        string `json:"id"`
+	TrackId   string `json:"track_id"`
+	AppId     string `json:"app_id,omitempty"`
+	ProxyId   int64  `json:"proxy_id,omitempty"`
+	RoomId    int64  `json:"room_id,omitempty"`
+	UserId    int64  `json:"user_id,omitempty"`
+	Action    int    `json:"action"` // 操作类型
+	AuthToken string `json:"auth_token"`
+	Data      any    `json:"data"` // 操作数据
+	Lang      string `json:"lang"`
+	Ts        int64  `json:"ts"`
 }
 
 func (c *CmdReq) Bytes() []byte {
@@ -26,18 +24,18 @@ func (c *CmdReq) Bytes() []byte {
 }
 
 func (c *CmdReq) Signal() error {
-	ts := time.Now().Unix()
+	// ts := time.Now().Unix()
 	if c.AppId == "" {
 		return fmt.Errorf("setSign appId is empty")
 	}
 	// appId + ts 签名 RsaEncrypt
-	code := fmt.Sprintf("%s:%d", c.AppId, ts)
-	sign, err := RsaEncrypt([]byte(code), []byte(LOGIN_PUBLIC_KEY))
-	if err != nil {
-		return err
-	}
-	c.Ts = ts
-	c.Sign = string(sign)
+	// code := fmt.Sprintf("%s:%d", c.AppId, ts)
+	// sign, err := RsaEncrypt([]byte(code), []byte(LOGIN_PUBLIC_KEY))
+	// if err != nil {
+	// 	return err
+	// }
+	// c.Ts = ts
+	// c.Sign = string(sign)
 	return nil
 }
 
@@ -49,19 +47,19 @@ func (c *CmdReq) CheckSignal() error {
 	if c.Ts == 0 {
 		return fmt.Errorf("ts is empty")
 	}
-	// 校验 sign 是否为空
-	if c.Sign == "" {
-		return fmt.Errorf("sign is empty")
-	}
-	// sign 解密 RsaDecrypt
-	code, err := RsaDecrypt([]byte(c.Sign), []byte(LOGIN_PRIVATE_KEY))
-	if err != nil {
-		return err
-	}
+	// // 校验 sign 是否为空
+	// if c.Sign == "" {
+	// 	return fmt.Errorf("sign is empty")
+	// }
+	// // sign 解密 RsaDecrypt
+	// code, err := RsaDecrypt([]byte(c.Sign), []byte(LOGIN_PRIVATE_KEY))
+	// if err != nil {
+	// 	return err
+	// }
 	// 校验 appId + ts 是否一致
-	expectedCode := fmt.Sprintf("%s:%d", c.AppId, c.Ts)
-	if string(code) != expectedCode {
-		return fmt.Errorf("invalid sign")
-	}
+	// expectedCode := fmt.Sprintf("%s:%d", c.AppId, c.Ts)
+	// if string(code) != expectedCode {
+	// 	return fmt.Errorf("invalid sign")
+	// }
 	return nil
 }

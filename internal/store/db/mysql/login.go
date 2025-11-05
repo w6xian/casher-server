@@ -1,0 +1,22 @@
+package mysql
+
+import (
+	"casher-server/internal/store"
+
+	"github.com/w6xian/sqlm"
+)
+
+func (d *DB) GetAuthInfo(link sqlm.ITable, mchId, apiKey string) (*store.AuthInfo, error) {
+	authInfo := &store.AuthInfo{}
+	authc, err := link.Table(store.TABLE_COM_SHOPS_AUTHS).
+		Where("mch_id = '%s' AND api_key = '%s'", mchId, apiKey).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	err = authc.Scan(authInfo)
+	if err != nil {
+		return nil, err
+	}
+	return authInfo, nil
+}

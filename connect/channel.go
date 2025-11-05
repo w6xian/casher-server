@@ -7,6 +7,7 @@ package connect
 
 import (
 	"casher-server/proto"
+	"context"
 	"net"
 
 	"github.com/gorilla/websocket"
@@ -31,9 +32,11 @@ func NewChannel(size int) (c *Channel) {
 	return
 }
 
-func (ch *Channel) Push(msg *proto.Msg) (err error) {
+func (ch *Channel) Push(ctx context.Context, msg *proto.Msg) (err error) {
 	select {
 	case ch.broadcast <- msg:
+	case <-ctx.Done():
+		return ctx.Err()
 	default:
 	}
 	return

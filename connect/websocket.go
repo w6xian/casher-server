@@ -37,7 +37,7 @@ func (c *Connect) serveWs(server *Server, w http.ResponseWriter, r *http.Request
 	}
 	// 一个连接一个channel
 	ch := NewChannel(server.Profile.Server.BroadcastSize)
-	fmt.Println("ch:", ch)
+
 	//default broadcast size eq 512
 	ch.conn = conn
 	//send data to websocket conn

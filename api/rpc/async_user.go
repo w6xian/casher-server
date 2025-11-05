@@ -37,7 +37,7 @@ func (c *Shop) AsyncUsers(ctx context.Context, req *store.AsyncRequest, reply *s
 		return err
 	}
 	// 校验返回签名
-	err = setSign(reply)
+	err = setSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (c *Shop) AsyncUsersExtra(ctx context.Context, req *store.AsyncRequest, rep
 		return err
 	}
 	// 校验返回签名
-	err = setSign(reply)
+	err = setSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}

@@ -56,4 +56,7 @@ type Driver interface {
 	QueryUsersExtra(link sqlm.ITable, req *AsyncRequest) (*AsyncUsersExtraReply, error)
 	// supplier
 	QuerySuppliers(link sqlm.ITable, req *AsyncRequest) (*AsyncSuppliersReply, error)
+
+	// 授权信息
+	GetAuthInfo(link sqlm.ITable, mchId, apiKey string) (*AuthInfo, error)
 }

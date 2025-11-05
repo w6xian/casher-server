@@ -32,9 +32,7 @@ func (req *Req) GetOpenId(ctx context.Context) string {
 }
 
 // 实现 IEncrypt
-func (reply *Req) EncryptInfo() string {
-	return reply.AppId
-}
+
 func (reply *Req) SetSign(sign string, ts int64) error {
 	reply.Sign = sign
 	reply.Ts = ts

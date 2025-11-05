@@ -37,7 +37,7 @@ func (c *Shop) AsyncSuppliers(ctx context.Context, req *store.AsyncRequest, repl
 		return err
 	}
 	// 校验返回签名
-	err = setSign(reply)
+	err = setSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}

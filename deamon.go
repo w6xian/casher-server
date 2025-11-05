@@ -115,6 +115,7 @@ func (p *Deamon) run(s service.Service) {
 	if err != nil {
 		panic(err)
 	}
+	wsLogic := connect.InitWsLogicServer()
 
 	//  缓存
 	m := cache.NewCache(cache.CacheOptions{
@@ -130,7 +131,7 @@ func (p *Deamon) run(s service.Service) {
 	// 创建 Actor 池
 	actor := queue.NewPool(sys, "testpool", 2, 6)
 
-	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, actor)
+	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, actor, wsLogic)
 	if err != nil {
 		panic(err)
 	}
@@ -156,8 +157,6 @@ func (p *Deamon) run(s service.Service) {
 	}
 	fmt.Println("server ws addr:", p.Profile.Server.WsAddr)
 
-	wsLogic := connect.InitWsLogicServer()
-
 	r := mux.NewRouter()
 	r.Use(mw.CORSMethodMiddleware(p.Profile.Server.Origins))
 
@@ -169,7 +168,7 @@ func (p *Deamon) run(s service.Service) {
 	// rpcxListener := muxServer.Match(cmux.Any())
 
 	go func() {
-		api := v1.NewApi(ctx, p.Profile, logger, m, actor, wsLogic)
+		api := v1.NewApi(ctx, storeInstance, p.Profile, logger, m, actor, wsLogic)
 		router.Register(ctx, r, api)
 		// 绑定路由到Http
 		http.Handle("/", r)

@@ -37,7 +37,7 @@ func (c *Shop) AsyncOrders(ctx context.Context, req *store.AsyncRequest, reply *
 		return err
 	}
 	// 校验返回签名
-	err = setSign(reply)
+	err = setSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"casher-server/connect"
 	"casher-server/internal/config"
 	"casher-server/internal/queue"
 	"context"
@@ -16,15 +17,17 @@ type Store struct {
 	lager     *zap.Logger
 	cache     *cache.Cache
 	actorPool *queue.ActorPool
+	WsLogic   *connect.WsLogic
 }
 
-func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool) (*Store, error) {
+func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool, wsLogic *connect.WsLogic) (*Store, error) {
 	store := &Store{
 		profile:   opt,
 		driver:    driver,
 		lager:     lager,
 		cache:     cache,
 		actorPool: actorPool,
+		WsLogic:   wsLogic,
 	}
 	return store, nil
 }

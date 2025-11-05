@@ -39,7 +39,7 @@ func (c *Shop) GetCompanyBySn(ctx context.Context, req *store.CompanySnReq, repl
 		return lang.Error("get_company_by_sn_reply", "查询公司信息失败:{{.error}}", i18n.String("error", err.Error()))
 	}
 	// 校验返回签名
-	err = setSign(reply)
+	err = setSign(reply, req.AppId)
 	if err != nil {
 		return lang.Error("get_company_by_sn_reply_sign", "设置签名失败:{{.error}}", i18n.String("error", err.Error()))
 	}
@@ -78,7 +78,7 @@ func (c *Shop) GetCompanyByName(ctx context.Context, req *store.CompanyNameReq, 
 		return lang.Error("get_company_by_name_reply", "查询公司信息失败:{{.error}}", i18n.String("error", err.Error()))
 	}
 	// 校验返回签名
-	err = setSign(reply)
+	err = setSign(reply, req.AppId)
 	if err != nil {
 		return lang.Error("get_company_by_sn_reply_sign", "设置签名失败:{{.error}}", i18n.String("error", err.Error()))
 	}

@@ -100,6 +100,10 @@ type ConnectConfig struct {
 	ServerId                   string                     `mapstructure:"server_id"`
 }
 
+type CacheConfig struct {
+	Expire int `mapstructure:"expire"` // 缓存过期时间，单位：秒
+}
+
 type Logger struct {
 	FilePath    string `mapstructure:"file_path"`    // 日志文件路径
 	Level       int8   `mapstructure:"level"`        // 日志级别
@@ -128,6 +132,7 @@ type Profile struct {
 	EmployeeId int64        `mapstructure:"employee_id"`
 	log        StdLog
 	Connect    ConnectConfig `mapstructure:"connect"`
+	Cache      CacheConfig   `mapstructure:"cache"`
 }
 
 func (opts *Profile) SetLogger(log StdLog) *Profile {
@@ -169,10 +174,10 @@ func NewProfile() *Profile {
 				WriteWait:       10 * time.Second,
 				PongWait:        60 * time.Second,
 				PingPeriod:      54 * time.Second,
-				MaxMessageSize:  512,
-				ReadBufferSize:  1024,
-				WriteBufferSize: 1024,
-				BroadcastSize:   512,
+				MaxMessageSize:  2048,
+				ReadBufferSize:  4096,
+				WriteBufferSize: 4096,
+				BroadcastSize:   1024,
 			},
 
 			Store: &sqlm.Server{

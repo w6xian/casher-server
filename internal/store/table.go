@@ -21,6 +21,8 @@ const (
 	TABLE_MALL_SO_ITEMS = "mall_so_items"
 	// 商品项表
 	TABLE_COM_SHOPS_PRODUCTS = "com_shops_products"
+	// API授权表
+	TABLE_COM_SHOPS_AUTHS = "com_shops_auths"
 	// 品牌
 	TABLE_CRM_BRANDS = "crm_brands"
 	// 商品分类
