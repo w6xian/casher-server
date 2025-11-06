@@ -1,0 +1,42 @@
+package v1
+
+import (
+	"casher-server/internal/muxhttp"
+	"casher-server/internal/store"
+	"fmt"
+	"net/http"
+)
+
+func (v *Api) NewOrder(w http.ResponseWriter, req *http.Request) ([]byte, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Fprintf(w, "%s", err)
+		}
+	}()
+	// API 上下文开始
+	req, stop := v.Start(req)
+	defer stop()
+
+	ctx, close := v.DbConnectWithClose(req.Context())
+	defer close()
+	reqData := &store.WsReq{}
+	aErr := v.PostV(req, reqData)
+	if aErr != nil {
+		return nil, muxhttp.NewArgsErr(aErr)
+	}
+	// // 校验参数
+	tracker, tErr := v.GetTracker(req, true)
+	if tErr != nil {
+		return nil, tErr
+	}
+	reqData.Tracker = tracker
+	vErr := reqData.Validate()
+	if vErr != nil {
+		return nil, muxhttp.NewArgsValidErr(vErr)
+	}
+	_, err := v.Store.NoticeNewOrder(ctx, reqData)
+	if err != nil {
+		return nil, muxhttp.NewErr(err)
+	}
+	return muxhttp.NewRowData(map[string]any{}).ToBytes()
+}

@@ -36,7 +36,7 @@ func InitWsLogicServer() *WsLogic {
 	return WsLogicObjc
 }
 
-func (c *WsLogic) Channel(ctx context.Context, userId int64, data []byte) {
+func (c *WsLogic) Channel(ctx context.Context, userId int64, action int, data string) {
 	if c.Server == nil {
 		return
 	}
@@ -48,7 +48,7 @@ func (c *WsLogic) Channel(ctx context.Context, userId int64, data []byte) {
 	cmd := proto.CmdReq{
 		Id:     id.ShortID(),
 		Ts:     time.Now().Unix(),
-		Action: 0xFF,
+		Action: action,
 		Data:   data,
 	}
 	msg := &proto.Msg{
@@ -59,7 +59,7 @@ func (c *WsLogic) Channel(ctx context.Context, userId int64, data []byte) {
 	}
 }
 
-func (c *WsLogic) Room(ctx context.Context, roomId int64, data []byte) {
+func (c *WsLogic) Room(ctx context.Context, roomId int64, action int, data string) {
 	if c.Server == nil {
 		return
 	}
@@ -71,7 +71,7 @@ func (c *WsLogic) Room(ctx context.Context, roomId int64, data []byte) {
 	cmd := proto.CmdReq{
 		Id:     id.ShortID(),
 		Ts:     time.Now().Unix(),
-		Action: 0xFF,
+		Action: action,
 		Data:   data,
 	}
 	msg := &proto.Msg{
@@ -80,7 +80,7 @@ func (c *WsLogic) Room(ctx context.Context, roomId int64, data []byte) {
 	room.Push(ctx, msg)
 }
 
-func (c *WsLogic) Broadcast(ctx context.Context, data []byte) {
+func (c *WsLogic) Broadcast(ctx context.Context, action int, data string) {
 	if c.Server == nil {
 		return
 	}
@@ -88,7 +88,7 @@ func (c *WsLogic) Broadcast(ctx context.Context, data []byte) {
 	cmd := proto.CmdReq{
 		Id:     id.ShortID(),
 		Ts:     time.Now().Unix(),
-		Action: 0xFF,
+		Action: action,
 		Data:   data,
 	}
 	msg := &proto.Msg{

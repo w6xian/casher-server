@@ -14,7 +14,7 @@ type CmdReq struct {
 	UserId    int64  `json:"user_id,omitempty"`
 	Action    int    `json:"action"` // 操作类型
 	AuthToken string `json:"auth_token"`
-	Data      any    `json:"data"` // 操作数据
+	Data      string `json:"data"` // 操作数据
 	Lang      string `json:"lang"`
 	Ts        int64  `json:"ts"`
 }

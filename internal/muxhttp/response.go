@@ -1,6 +1,7 @@
 package muxhttp
 
 import (
+	"casher-server/internal/utils/id"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -167,7 +168,7 @@ func (r *RiskData) ToBytes() ([]byte, error) {
 	}
 	rst.Status = http.StatusOK
 	rst.Text = "操作成功"
-	rst.Track = uuid.NewString()
+	rst.Track = id.ShortID()
 	rst.Data = data
 	res, err := json.Marshal(rst)
 	return res, err

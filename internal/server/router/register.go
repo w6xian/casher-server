@@ -19,5 +19,6 @@ func Register(ctx context.Context, r *mux.Router, v *v1.Api) {
 	// 设置 setting
 	// ### 同步操作
 	r.HandleFunc("/shop-setting-table-id", JsonV2(v.Call, lager.RegLager(v.Lager, "查询配置表ID"))).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
-
+	// ### 异步操作
+	r.HandleFunc("/notice-order", JsonV2(v.NewOrder, lager.RegLager(v.Lager, "创建订单"))).Methods(http.MethodGet, http.MethodPost, http.MethodOptions)
 }

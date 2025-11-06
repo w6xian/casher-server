@@ -18,8 +18,8 @@ func NextId(svr int64) (int64, error) {
 	}
 
 	// Generate a snowflake ID.
-	id := node.Generate()
-	return id.Int64(), nil
+	snowId := node.Generate()
+	return snowId.Int64(), nil
 }
 
 // 对称加密IP和端口，当做clientId

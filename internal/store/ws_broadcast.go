@@ -14,7 +14,7 @@ type CallResp struct {
 }
 
 func (s *Store) Call(ctx context.Context, req *CallReq) (*CallResp, error) {
-	s.WsLogic.Broadcast(ctx, []byte("action:setting_query"))
+	s.WsLogic.Broadcast(ctx, ACTION_BROADCAST, "action:setting_query")
 	resp := &CallResp{}
 	return resp, nil
 }

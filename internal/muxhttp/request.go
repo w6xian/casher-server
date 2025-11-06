@@ -26,7 +26,9 @@ type HttpPostJson struct {
 }
 
 func (h *HttpPostJson) Unmarshal(v any) error {
-	// fmt.Println(string(h.Data))
+	if len(h.Data) == 0 {
+		return nil
+	}
 	return json.Unmarshal(h.Data, v)
 }
 

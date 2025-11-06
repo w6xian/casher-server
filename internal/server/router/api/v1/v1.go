@@ -6,7 +6,10 @@ import (
 	"casher-server/internal/muxhttp"
 	"casher-server/internal/queue"
 	"casher-server/internal/store"
+	"casher-server/internal/utils/def"
+	"casher-server/internal/utils/id"
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -78,9 +81,12 @@ func (v *Api) GetTracker(req *http.Request, checkLock bool) (*store.Tracker, err
 	if !checkLock {
 		return v.AnonymousTracker(req)
 	}
-
+	nextId, err := id.NextId(def.GetNumber(v.Profile.Machine.Id, 1))
+	if err != nil {
+		return nil, err
+	}
 	tracker := store.NewTracker()
-	tracker.TrackId = muxhttp.GetRequestId(req)
+	tracker.TrackId = fmt.Sprintf("%d", nextId)
 	tracker.MachineNo = v.Profile.Machine.Id
 	tracker.MachineId = v.Profile.Machine.Code
 	tracker.Language = muxhttp.GetLanguage(req)
