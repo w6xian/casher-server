@@ -114,7 +114,7 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 func (s *Server) readPump(ch *Channel, c *Connect) {
 	defer func() {
 		c.Lager.Info("start exec disConnect ...")
-		if ch.Room == nil || ch.userId == 0 {
+		if ch.Room == nil || ch.UserId == 0 {
 			c.Lager.Info("roomId and userId eq 0")
 			ch.conn.Close()
 			return
@@ -122,8 +122,8 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		c.Lager.Info("exec disConnect ...")
 		disConnectRequest := new(proto.DisConnectRequest)
 		disConnectRequest.RoomId = ch.Room.Id
-		disConnectRequest.UserId = ch.userId
-		s.Bucket(ch.userId).DeleteChannel(ch)
+		disConnectRequest.UserId = ch.UserId
+		s.Bucket(ch.UserId).DeleteChannel(ch)
 		if err := s.operator.DisConnect(disConnectRequest); err != nil {
 			c.Lager.Warn("DisConnect err  ", zap.String("err", err.Error()))
 		}
@@ -156,7 +156,7 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			c.Lager.Error("message struct ", zap.String("err", reqErr.Error()))
 			return
 		}
-		if ch.userId > 0 && connReq.Action != command.ACTION_LOGIN && connReq.Action != command.ACTION_LOGOUT {
+		if ch.UserId > 0 && connReq.Action != command.ACTION_LOGIN && connReq.Action != command.ACTION_LOGOUT {
 			// 已登录过后，可以互动消息
 			s.operator.HandleMessage(ch, connReq)
 			continue
@@ -198,78 +198,3 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		}
 	}
 }
-
-// func (s *Server) readPump(ch *Channel, c *Connect) {
-// 	defer func() {
-// 		c.Lager.Info("start exec disConnect ...")
-// 		if ch.Room == nil || ch.userId == 0 {
-// 			c.Lager.Info("roomId and userId eq 0")
-// 			ch.conn.Close()
-// 			return
-// 		}
-// 		c.Lager.Info("exec disConnect ...")
-// 		disConnectRequest := new(proto.DisConnectRequest)
-// 		disConnectRequest.RoomId = ch.Room.Id
-// 		disConnectRequest.UserId = ch.userId
-// 		s.Bucket(ch.userId).DeleteChannel(ch)
-// 		if err := s.operator.DisConnect(disConnectRequest); err != nil {
-// 			c.Lager.Warn("DisConnect err  ", zap.String("err", err.Error()))
-// 		}
-// 		ch.conn.Close()
-// 	}()
-
-// 	ch.conn.SetReadLimit(s.Profile.Server.MaxMessageSize)
-// 	ch.conn.SetReadDeadline(time.Now().Add(s.Profile.Server.PongWait))
-// 	ch.conn.SetPongHandler(func(string) error {
-// 		ch.conn.SetReadDeadline(time.Now().Add(s.Profile.Server.PongWait))
-// 		return nil
-// 	})
-
-// 	for {
-// 		_, message, err := ch.conn.ReadMessage()
-// 		if err != nil {
-// 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-// 				c.Lager.Error("readPump ReadMessage err  ", zap.String("err", err.Error()))
-// 				return
-// 			}
-// 		}
-// 		fmt.Println("readPump message:", ch.userId, string(message))
-// 		if message == nil {
-// 			c.Lager.Error("message is nil")
-// 			fmt.Println("message is nil")
-// 			return
-// 		}
-// 		if ch.userId > 0 {
-// 			// 已登录过后，可以互动消息
-// 			s.operator.HandleMessage(ch, message)
-// 			continue
-// 		}
-// 		var connReq *proto.CmdReq
-// 		c.Lager.Info("get a message ", zap.ByteString("body", message))
-// 		if err := json.Unmarshal([]byte(message), &connReq); err != nil {
-// 			c.Lager.Error("message struct ", zap.String("err", err.Error()))
-// 		}
-// 		fmt.Println("connReq:", string(connReq.Bytes()))
-// 		// 拿到用用户信息
-// 		userId, err := s.operator.Connect(connReq)
-// 		fmt.Println("userId:", userId, "Connect err:", err)
-// 		if err != nil {
-// 			c.Lager.Error("s.operator.Connect error  ", zap.String("err", err.Error()))
-// 			return
-// 		}
-// 		if userId == 0 {
-// 			c.Lager.Error("Invalid AuthToken ,userId empty")
-// 			// 登录不成功，就等着下一次登录
-// 			continue
-// 		}
-// 		c.Lager.Info("websocket rpc call return userId:%d,RoomId:%d", zap.Int64("userId", userId), zap.Int64("RoomId", connReq.RoomId))
-
-// 		b := s.Bucket(userId)
-// 		//insert into a bucket
-// 		err = b.Put(userId, connReq.ProxyId, ch)
-// 		if err != nil {
-// 			c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
-// 			ch.conn.Close()
-// 		}
-// 	}
-// }

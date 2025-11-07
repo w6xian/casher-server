@@ -17,6 +17,7 @@ import (
 	_ "net/http/pprof"
 	"runtime"
 
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
 	"modernc.org/mathutil"
@@ -70,8 +71,6 @@ func (c *WsLogic) Room(ctx context.Context, roomId int64, action int, data strin
 	if room.drop {
 		return
 	}
-	fmt.Println("Room layer Push() roomId:", roomId)
-
 	cmd := proto.CmdReq{
 		Id:     id.ShortID(),
 		Ts:     time.Now().Unix(),
@@ -119,7 +118,7 @@ func New(ctx context.Context, profile *config.Profile, lager *zap.Logger) *Conne
 	return svr
 }
 
-func (c *Connect) Server(wsLogic *WsLogic) {
+func (c *Connect) Server(wsLogic *WsLogic, r *mux.Router) {
 	// get Connect layer config
 	connectConfig := c.Profile.Connect
 	//set the maximum number of CPUs that can be executing
@@ -142,7 +141,7 @@ func (c *Connect) Server(wsLogic *WsLogic) {
 	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
 	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))
 	//start Connect layer server handler persistent connection
-	if err := c.InitWebsocket(wsLogic); err != nil {
+	if err := c.InitWebsocket(wsLogic, r); err != nil {
 		c.Lager.Panic("Connect layer InitWebsocket() error", zap.Error(err))
 		panic("Connect layer InitWebsocket() error")
 	}

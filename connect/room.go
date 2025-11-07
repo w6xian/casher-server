@@ -54,11 +54,12 @@ func (r *Room) Put(ch *Channel) (err error) {
 
 func (r *Room) Push(ctx context.Context, msg *proto.Msg) {
 	r.rLock.RLock()
+	defer r.rLock.RUnlock()
 	// 从第一个用户开始推送
 	var firstUserId int64
 	ch := r.next
 	if ch != nil {
-		firstUserId = ch.userId
+		firstUserId = ch.UserId
 		if err := ch.Push(ctx, msg); err != nil {
 			fmt.Printf("push msg err:%s", err.Error())
 		}
@@ -67,7 +68,8 @@ func (r *Room) Push(ctx context.Context, msg *proto.Msg) {
 		if r.drop {
 			break
 		}
-		if firstUserId == ch.userId {
+		fmt.Println("Push", ch.UserId)
+		if firstUserId == ch.UserId {
 			// 重复用户，不推送。防止出现重复推送
 			fmt.Println("重复用户，不推送。防止出现重复推送")
 			break
@@ -76,7 +78,6 @@ func (r *Room) Push(ctx context.Context, msg *proto.Msg) {
 			fmt.Printf("push msg err:%s", err.Error())
 		}
 	}
-	r.rLock.RUnlock()
 }
 
 func (r *Room) DeleteChannel(ch *Channel) bool {

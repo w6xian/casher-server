@@ -95,9 +95,13 @@ func (s *Store) Login(ctx context.Context, req *LoginRequest, reply *LoginReply)
 	// 2 获取数据库连接
 	// link := s.GetLink(ctx)
 	// // 2.1 数据驱动
-	// db := s.GetDriver()
+	// driver := s.GetDriver()
 	// // 2.2 语言
 	// lang := req.Tracker
+	// 3 校验参数
+	if err := req.Validate(); err != nil {
+		return err
+	}
 	// 4 校验通过，返回用户信息
 	return nil
 }

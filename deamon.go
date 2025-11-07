@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"casher-server/internal/config"
@@ -30,7 +29,6 @@ import (
 	"casher-server/internal/muxhttp/mw"
 
 	"github.com/gorilla/mux"
-	"github.com/soheilhy/cmux"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -155,35 +153,41 @@ func (p *Deamon) run(s service.Service) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("server ws addr:", p.Profile.Server.WsAddr)
 
 	r := mux.NewRouter()
 	r.Use(mw.CORSMethodMiddleware(p.Profile.Server.Origins))
 
-	muxServer := cmux.New(ln)
+	// muxServer := cmux.New(ln)
 	//Otherwise, we match it againts a websocket upgrade request.
 	// wsListener := muxServer.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
 	// wsl := m.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
-	httpListener := muxServer.Match(cmux.HTTP1Fast())
+	// httpListener := muxServer.Match(cmux.HTTP1Fast())
 	// rpcxListener := muxServer.Match(cmux.Any())
 
 	go func() {
+		defer func() {
+			record := recover()
+			if record != nil {
+				logger.Error("Deamon run panic", zap.Any("record", record))
+			}
+		}()
 		api := v1.NewApi(ctx, storeInstance, p.Profile, logger, m, actor, wsLogic)
 		router.Register(ctx, r, api)
 		// 绑定路由到Http
 		http.Handle("/", r)
 		//初始化加入对应的
-		connect.New(p.Context, p.Profile, logger).Server(wsLogic)
-		http.Serve(httpListener, nil)
+		connect.New(p.Context, p.Profile, logger).Server(wsLogic, r)
+		http.Serve(ln, nil)
+		fmt.Println("=========================")
 	}()
 	go func() {
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance)
 	}()
-	go func() {
-		if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
-			panic(err)
-		}
-	}()
+	// go func() {
+	// 	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
+	// 		panic(err)
+	// 	}
+	// }()
 
 }
 

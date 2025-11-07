@@ -9,12 +9,13 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 )
 
-func (c *Connect) InitWebsocket(wsLogic *WsLogic) error {
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+func (c *Connect) InitWebsocket(wsLogic *WsLogic, r *mux.Router) error {
+	r.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		c.serveWs(wsLogic.Server, w, r)
 	})
 	return nil

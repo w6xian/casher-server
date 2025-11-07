@@ -57,8 +57,8 @@ func (b *Bucket) PushRoom(ctx context.Context, ch chan *proto.PushRoomMsgRequest
 
 func (b *Bucket) Room(rid int64) (room *Room) {
 	b.cLock.RLock()
+	defer b.cLock.RUnlock()
 	room = b.rooms[rid]
-	b.cLock.RUnlock()
 	return
 }
 
@@ -68,6 +68,7 @@ func (b *Bucket) Put(userId int64, roomId int64, ch *Channel) (err error) {
 		ok   bool
 	)
 	b.cLock.Lock()
+	defer b.cLock.Unlock()
 	// 原来有房间，先退出房间
 	if ch.Room != nil {
 		if ch.Room.Id == roomId {
@@ -86,10 +87,8 @@ func (b *Bucket) Put(userId int64, roomId int64, ch *Channel) (err error) {
 		}
 		ch.Room = room
 	}
-	ch.userId = userId
+	ch.UserId = userId
 	b.chs[userId] = ch
-	b.cLock.Unlock()
-
 	if room != nil {
 		err = room.Put(ch)
 	}
@@ -130,10 +129,11 @@ func (b *Bucket) DeleteChannel(ch *Channel) {
 		room *Room
 	)
 	b.cLock.RLock()
-	if ch, ok = b.chs[ch.userId]; ok {
-		room = b.chs[ch.userId].Room
+	defer b.cLock.RUnlock()
+	if ch, ok = b.chs[ch.UserId]; ok {
+		room = b.chs[ch.UserId].Room
 		//delete from bucket
-		delete(b.chs, ch.userId)
+		delete(b.chs, ch.UserId)
 	}
 	if room != nil && room.DeleteChannel(ch) {
 		// if room empty delete,will mark room.drop is true
@@ -141,13 +141,12 @@ func (b *Bucket) DeleteChannel(ch *Channel) {
 			delete(b.rooms, room.Id)
 		}
 	}
-	b.cLock.RUnlock()
 }
 
 func (b *Bucket) Channel(userId int64) (ch *Channel) {
 	b.cLock.RLock()
+	defer b.cLock.RUnlock()
 	ch = b.chs[userId]
-	b.cLock.RUnlock()
 	return
 }
 

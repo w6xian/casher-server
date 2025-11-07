@@ -5,7 +5,6 @@ import (
 	"casher-server/internal/errors"
 	"context"
 	"encoding/json"
-	"fmt"
 )
 
 type WsReq struct {
@@ -47,7 +46,6 @@ func (s *Store) NoticeNewOrder(ctx context.Context, req *WsReq) (*CallResp, erro
 		ShopId: shop.Id,
 		OpenId: shop.AppId,
 	}
-	fmt.Println("--------------------------------")
 	if req.UserId > 0 {
 		s.WsLogic.Channel(ctx, req.UserId, command.ACTION_NOTICE_ORDER, cmd.String())
 	} else {
