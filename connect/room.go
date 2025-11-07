@@ -15,6 +15,7 @@ import (
 )
 
 const NoRoom = -1
+const Plaza = 0
 
 type Room struct {
 	Id          int64
@@ -53,7 +54,24 @@ func (r *Room) Put(ch *Channel) (err error) {
 
 func (r *Room) Push(ctx context.Context, msg *proto.Msg) {
 	r.rLock.RLock()
-	for ch := r.next; ch != nil; ch = ch.Next {
+	// 从第一个用户开始推送
+	var firstUserId int64
+	ch := r.next
+	if ch != nil {
+		firstUserId = ch.userId
+		if err := ch.Push(ctx, msg); err != nil {
+			fmt.Printf("push msg err:%s", err.Error())
+		}
+	}
+	for ch = ch.Next; ch != nil; ch = ch.Next {
+		if r.drop {
+			break
+		}
+		if firstUserId == ch.userId {
+			// 重复用户，不推送。防止出现重复推送
+			fmt.Println("重复用户，不推送。防止出现重复推送")
+			break
+		}
 		if err := ch.Push(ctx, msg); err != nil {
 			fmt.Printf("push msg err:%s", err.Error())
 		}
@@ -76,7 +94,11 @@ func (r *Room) DeleteChannel(ch *Channel) bool {
 	r.OnlineCount--
 	r.drop = false
 	if r.OnlineCount <= 0 {
-		r.drop = true
+		if r.Id != Plaza {
+			r.drop = true
+		} else {
+			r.OnlineCount = 0
+		}
 	}
 	r.rLock.RUnlock()
 	return r.drop

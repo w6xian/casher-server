@@ -67,6 +67,10 @@ func (c *WsLogic) Room(ctx context.Context, roomId int64, action int, data strin
 	if room == nil {
 		return
 	}
+	if room.drop {
+		return
+	}
+	fmt.Println("Room layer Push() roomId:", roomId)
 
 	cmd := proto.CmdReq{
 		Id:     id.ShortID(),

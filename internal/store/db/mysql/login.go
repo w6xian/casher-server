@@ -9,7 +9,8 @@ import (
 func (d *DB) GetAuthInfo(link sqlm.ITable, mchId, apiKey string) (*store.AuthInfo, error) {
 	authInfo := &store.AuthInfo{}
 	authc, err := link.Table(store.TABLE_COM_SHOPS_AUTHS).
-		Where("mch_id = '%s' AND api_key = '%s'", mchId, apiKey).
+		Where("mch_id = '%s'", mchId).
+		And("api_key = '%s'", apiKey).
 		Query()
 	if err != nil {
 		return nil, err

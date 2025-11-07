@@ -150,21 +150,21 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			fmt.Println("message is nil")
 			return
 		}
-		fmt.Println("server readPump message :%s", string(message))
-		if ch.userId > 0 {
-			// 已登录过后，可以互动消息
-			s.operator.HandleMessage(ch, message)
-			continue
-		}
 
 		var connReq *proto.CmdReq
 		if reqErr := json.Unmarshal(message, &connReq); reqErr != nil {
 			c.Lager.Error("message struct ", zap.String("err", reqErr.Error()))
 			return
 		}
+		if ch.userId > 0 && connReq.Action != command.ACTION_LOGIN && connReq.Action != command.ACTION_LOGOUT {
+			// 已登录过后，可以互动消息
+			s.operator.HandleMessage(ch, connReq)
+			continue
+		}
+		fmt.Println("connReq:", string(message))
 		// 拿到用用户信息
 		userId, roomId, err := s.operator.Connect(connReq)
-		fmt.Println("userId:", userId, "Connect err:", err)
+		fmt.Println("userId:", userId, roomId, "Connect err:", err)
 		if err != nil {
 			c.Lager.Error("s.operator.Connect error  ", zap.String("err", err.Error()))
 			return
@@ -179,6 +179,14 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			b := s.Bucket(userId)
 			//insert into a bucket
 			err = b.Put(userId, roomId, ch)
+			if err != nil {
+				c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
+				ch.conn.Close()
+			}
+		} else if connReq.Action == command.ACTION_LOGOUT {
+			b := s.Bucket(userId)
+			//insert into a bucket
+			err = b.Quit(ch)
 			if err != nil {
 				c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
 				ch.conn.Close()

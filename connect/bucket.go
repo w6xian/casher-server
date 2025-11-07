@@ -68,8 +68,19 @@ func (b *Bucket) Put(userId int64, roomId int64, ch *Channel) (err error) {
 		ok   bool
 	)
 	b.cLock.Lock()
+	// 原来有房间，先退出房间
+	if ch.Room != nil {
+		if ch.Room.Id == roomId {
+			return
+		}
+		ch.Room.DeleteChannel(ch)
+	}
 	if roomId != NoRoom {
 		if room, ok = b.rooms[roomId]; !ok {
+			room = NewRoom(roomId)
+			b.rooms[roomId] = room
+		}
+		if room.drop {
 			room = NewRoom(roomId)
 			b.rooms[roomId] = room
 		}
@@ -81,6 +92,34 @@ func (b *Bucket) Put(userId int64, roomId int64, ch *Channel) (err error) {
 
 	if room != nil {
 		err = room.Put(ch)
+	}
+	return
+}
+
+// 通出房间
+func (b *Bucket) Quit(ch *Channel) (err error) {
+	var (
+		room *Room
+		ok   bool
+	)
+	b.cLock.Lock()
+	defer b.cLock.Unlock()
+	if ch.Room == nil {
+		return
+	}
+	prev := ch.Room.Id
+	if prev != NoRoom {
+		if room, ok = b.rooms[prev]; ok {
+			room.DeleteChannel(ch)
+		}
+		if room, ok = b.rooms[Plaza]; !ok {
+			room = NewRoom(Plaza)
+			b.rooms[Plaza] = room
+		}
+		ch.Room = room
+		if room != nil {
+			err = room.Put(ch)
+		}
 	}
 	return
 }

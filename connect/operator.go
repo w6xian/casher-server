@@ -17,7 +17,7 @@ func (o *DefaultOperator) DisConnect(disConn *proto.DisConnectRequest) (err erro
 	return nil
 }
 
-func (o *DefaultOperator) HandleMessage(ch *Channel, message []byte) {
+func (o *DefaultOperator) HandleMessage(ch *Channel, message *proto.CmdReq) {
 	//
 
 }
