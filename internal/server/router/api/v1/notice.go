@@ -34,6 +34,9 @@ func (v *Api) NewOrder(w http.ResponseWriter, req *http.Request) ([]byte, error)
 	if vErr != nil {
 		return nil, muxhttp.NewArgsValidErr(vErr)
 	}
+	if reqData.AppId == "" {
+		reqData.AppId = "610800923266441381"
+	}
 	_, err := v.Store.NoticeNewOrder(ctx, reqData)
 	if err != nil {
 		return nil, muxhttp.NewErr(err)

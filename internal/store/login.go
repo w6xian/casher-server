@@ -12,6 +12,7 @@ CREATE TABLE `mi_com_shops_auths` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `proxy_id` bigint(20) NOT NULL DEFAULT '0',
   `shop_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '行号Id',
+  `open_id` varchar(45) NOT NULL DEFAULT '' COMMENT '店铺',
   `app_id` varchar(45) NOT NULL DEFAULT '' COMMENT '支付对应的APPID',
   `dev_id` varchar(45) NOT NULL DEFAULT '' COMMENT '设备编号',
   `mch_id` varchar(45) NOT NULL DEFAULT '' COMMENT '商号',
@@ -25,7 +26,7 @@ CREATE TABLE `mi_com_shops_auths` (
   `intime` int(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`) USING BTREE,
   KEY `idx_ma` (`mch_id`,`api_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='商店登录授';
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC COMMENT='商店登录授';
 
 */
 
@@ -56,6 +57,7 @@ type AuthInfo struct {
 	Id          int64  `json:"id"`
 	ProxyId     int64  `json:"proxy_id"`
 	ShopId      int64  `json:"shop_id"`
+	OpenId      string `json:"open_id"`
 	AppId       string `json:"app_id"`
 	DevId       string `json:"dev_id"`
 	MchId       string `json:"mch_id"`

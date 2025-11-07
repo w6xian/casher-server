@@ -6,8 +6,8 @@
 package connect
 
 import (
+	"casher-server/internal/command"
 	"casher-server/internal/config"
-	"casher-server/internal/utils/id"
 	"casher-server/proto"
 	"casher-server/tools"
 	"context"
@@ -96,17 +96,17 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 			if err := ch.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
-			fmt.Println("websocket.PingMessage success")
-			cmd := proto.CmdReq{
-				Id:     id.ShortID(),
-				Ts:     time.Now().Unix(),
-				Action: 0xFF,
-				Data:   "ping",
-			}
-			if err := ch.conn.WriteJSON(cmd); err != nil {
-				c.Lager.Error("WriteJSON err  ", zap.String("err", err.Error()))
-				return
-			}
+			// fmt.Println("websocket.PingMessage success")
+			// cmd := proto.CmdReq{
+			// 	Id:     id.ShortID(),
+			// 	Ts:     time.Now().Unix(),
+			// 	Action: 0xFF,
+			// 	Data:   "ping",
+			// }
+			// if err := ch.conn.WriteJSON(cmd); err != nil {
+			// 	c.Lager.Error("WriteJSON err  ", zap.String("err", err.Error()))
+			// 	return
+			// }
 		}
 	}
 }
@@ -150,6 +150,7 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			fmt.Println("message is nil")
 			return
 		}
+		fmt.Println("server readPump message :%s", string(message))
 		if ch.userId > 0 {
 			// 已登录过后，可以互动消息
 			s.operator.HandleMessage(ch, message)
@@ -173,14 +174,19 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			// 登录不成功，就等着下一次登录
 			continue
 		}
-		c.Lager.Info("websocket rpc call return userId:%d,RoomId:%d", zap.Int64("userId", userId), zap.Int64("RoomId", connReq.RoomId))
-
-		b := s.Bucket(userId)
-		//insert into a bucket
-		err = b.Put(userId, roomId, ch)
-		if err != nil {
-			c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
-			ch.conn.Close()
+		c.Lager.Info("websocket rpc call return userId,RoomId", zap.Int64("userId", userId), zap.Int64("RoomId", connReq.RoomId))
+		if connReq.Action == command.ACTION_LOGIN {
+			b := s.Bucket(userId)
+			//insert into a bucket
+			err = b.Put(userId, roomId, ch)
+			if err != nil {
+				c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
+				ch.conn.Close()
+			}
+		} else if connReq.Action == command.ACTION_INVALID {
+			c.Lager.Error("Invalid Action ,Action empty")
+			// 登录不成功，就等着下一次登录
+			continue
 		}
 	}
 }

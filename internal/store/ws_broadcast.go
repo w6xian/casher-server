@@ -1,6 +1,9 @@
 package store
 
-import "context"
+import (
+	"casher-server/internal/command"
+	"context"
+)
 
 type CallReq struct {
 	Tracker *Tracker `json:"tracker"`
@@ -14,7 +17,7 @@ type CallResp struct {
 }
 
 func (s *Store) Call(ctx context.Context, req *CallReq) (*CallResp, error) {
-	s.WsLogic.Broadcast(ctx, ACTION_BROADCAST, "action:setting_query")
+	s.WsLogic.Broadcast(ctx, command.ACTION_BROADCAST, "action:setting_query")
 	resp := &CallResp{}
 	return resp, nil
 }

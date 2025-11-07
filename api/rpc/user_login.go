@@ -42,6 +42,7 @@ func (c *Shop) AuthLogin(ctx context.Context, req *store.LoginRequest, reply *st
 	if err != nil {
 		return err
 	}
+	reply.OpenId = authInfo.OpenId
 	reply.UserId = authInfo.UserId
 	reply.RoomId = authInfo.ShopId
 	// 校验返回签名
