@@ -80,6 +80,7 @@ func (c *WsLogic) Room(ctx context.Context, roomId int64, action int, data strin
 	msg := &proto.Msg{
 		Body: cmd.Bytes(),
 	}
+	fmt.Println("Connect layer Push() roomId", roomId)
 	room.Push(ctx, msg)
 }
 

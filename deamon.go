@@ -165,12 +165,6 @@ func (p *Deamon) run(s service.Service) {
 	// rpcxListener := muxServer.Match(cmux.Any())
 
 	go func() {
-		defer func() {
-			record := recover()
-			if record != nil {
-				logger.Error("Deamon run panic", zap.Any("record", record))
-			}
-		}()
 		api := v1.NewApi(ctx, storeInstance, p.Profile, logger, m, actor, wsLogic)
 		router.Register(ctx, r, api)
 		// 绑定路由到Http
@@ -178,7 +172,6 @@ func (p *Deamon) run(s service.Service) {
 		//初始化加入对应的
 		connect.New(p.Context, p.Profile, logger).Server(wsLogic, r)
 		http.Serve(ln, nil)
-		fmt.Println("=========================")
 	}()
 	go func() {
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance)

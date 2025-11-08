@@ -82,6 +82,7 @@ func (r *Room) Push(ctx context.Context, msg *proto.Msg) {
 
 func (r *Room) DeleteChannel(ch *Channel) bool {
 	r.rLock.RLock()
+	defer r.rLock.RUnlock()
 	if ch.Next != nil {
 		//if not footer
 		ch.Next.Prev = ch.Prev
@@ -101,6 +102,5 @@ func (r *Room) DeleteChannel(ch *Channel) bool {
 			r.OnlineCount = 0
 		}
 	}
-	r.rLock.RUnlock()
 	return r.drop
 }
