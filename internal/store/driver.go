@@ -51,6 +51,9 @@ type Driver interface {
 	//商品
 	QueryProducts(link sqlm.ITable, req *AsyncRequest) (*AsyncProductsReply, error)
 	QueryProductsExtra(link sqlm.ITable, req *AsyncRequest) (*AsyncProductsExtraReply, error)
+	QueryProductUpdate(link sqlm.ITable, req *IdRequest) (*ProductLite, error)
+	AsyncUpdateProduct(link sqlm.ITable, req *UpdateRequest, kv map[string]any) (int64, error)
+
 	//用户
 	QueryUsers(link sqlm.ITable, req *AsyncRequest) (*AsyncUsersReply, error)
 	QueryUsersExtra(link sqlm.ITable, req *AsyncRequest) (*AsyncUsersExtraReply, error)

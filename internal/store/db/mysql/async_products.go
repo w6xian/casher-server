@@ -44,6 +44,41 @@ func (db *DB) QueryProducts(link sqlm.ITable, req *store.AsyncRequest) (*store.A
 	return reply, nil
 }
 
+// QueryProductUpdate 查询单一商品更新信息
+func (db *DB) QueryProductUpdate(link sqlm.ITable, req *store.IdRequest) (*store.ProductLite, error) {
+	product := &store.ProductLite{}
+	prd, err := link.Table(store.TABLE_COM_SHOPS_PRODUCTS).
+		Where("proxy_id=%d", req.Tracker.ProxyId).
+		And("shop_id=%d", req.Tracker.ShopId).
+		And("id=%d", req.Id).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	prd.Scan(product)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
+}
+
+// AsyncUpdateProduct 主动更新商品信息（如库存，价格，状态等）
+func (db *DB) AsyncUpdateProduct(link sqlm.ITable, req *store.UpdateRequest, kv map[string]any) (int64, error) {
+
+	_, err := link.Table(store.TABLE_COM_SHOPS_PRODUCTS).
+		Update(kv).
+		Where("proxy_id=%d", req.Tracker.ProxyId).
+		And("shop_id=%d", req.Tracker.ShopId).
+		And("id=%d", req.Id).
+		Execute()
+	if err != nil {
+		return 500, err
+	}
+
+	return 200, nil
+}
+
+// QueryProductsExtra 查询商品额外信息
 func (db *DB) QueryProductsExtra(link sqlm.ITable, req *store.AsyncRequest) (*store.AsyncProductsExtraReply, error) {
 	reply := &store.AsyncProductsExtraReply{}
 	limit := req.Limit

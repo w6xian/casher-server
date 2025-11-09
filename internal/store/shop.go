@@ -17,6 +17,7 @@ type Req struct {
 	Ts      int64          `json:"ts"`
 	Sign    string         `json:"sign"`
 	Tracker *lager.Tracker `json:"-"`
+	Action  int64          `json:"type"` //0同步列表 1 商品更新 2 商品删除
 }
 
 func (req *Req) DecryptInfo() (string, int64) {
@@ -37,6 +38,47 @@ func (reply *Req) SetSign(sign string, ts int64) error {
 	reply.Sign = sign
 	reply.Ts = ts
 	return nil
+}
+
+// IdRequest 基础请求参数
+type IdRequest struct {
+	Req
+	Id int64 `json:"id"`
+}
+
+// Validate 校验请求参数
+func (req *IdRequest) Validate() error {
+	if req.Tracker == nil {
+		return req.Tracker.Error("msg_tracker_invalid", "tracker is nil")
+	}
+	if req.Id <= 0 {
+		return req.Tracker.Error("msg_id_invalid", fmt.Sprintf("%d", req.Id))
+	}
+	return nil
+}
+
+// IdRequest 基础请求参数
+type UpdateRequest struct {
+	Req
+	Id     int64          `json:"id"`
+	Values map[string]any `json:"values"`
+}
+
+// Validate 校验请求参数
+func (req *UpdateRequest) Validate() error {
+	if req.Tracker == nil {
+		return req.Tracker.Error("msg_tracker_invalid", "tracker is nil")
+	}
+	if req.Id <= 0 {
+		return req.Tracker.Error("msg_id_invalid", fmt.Sprintf("%d", req.Id))
+	}
+	return nil
+}
+
+// UpdateRequestReply 商品更新信息请求参数
+type UpdateReply struct {
+	Req
+	Status int64 `json:"status"`
 }
 
 type ShopInfoReq struct {

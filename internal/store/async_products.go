@@ -1,8 +1,11 @@
 package store
 
 import (
+	"casher-server/internal/checker"
 	"casher-server/internal/lager"
 	"context"
+	"fmt"
+	"slices"
 	"time"
 )
 
@@ -51,6 +54,12 @@ type ProductLite struct {
 	Sort      int32  `json:"sort"`
 	Status    int32  `json:"status"`
 	Intime    int32  `json:"intime"`
+}
+
+// IdRequestProductReply 商品更新信息请求参数
+type IdRequestProductReply struct {
+	Req
+	Product *ProductLite `json:"product"`
 }
 
 // 返回同步商品信息
@@ -183,5 +192,80 @@ func (s *Store) AsyncProductsExtra(ctx context.Context, req *AsyncRequest, reply
 	reply.Categories = res.Categories
 	reply.Brands = res.Brands
 	reply.LastTime = time.Now().Unix()
+	return nil
+}
+
+// 同步单一商品更新信息
+type AsyncProductUpdateReply struct {
+	Req
+	// 同步商品信息
+	Product  *ProductLite `json:"product"`
+	LastTime int64        `json:"last_time"`
+}
+
+// AsyncProductUpdate 同步单一商品更新信息
+func (s *Store) AsyncProductLite(ctx context.Context, req *IdRequest, reply *IdRequestProductReply) error {
+	// 1 日志
+	log := lager.FromContext(ctx)
+	defer log.Sync()
+	log.SetOperation("AsyncProductLite", "AsyncProductLite", "async")
+	// 2 获取数据库连接
+	link := s.GetLink(ctx)
+	// 2.1 数据驱动
+	db := s.GetDriver()
+	// 2.2 语言
+	lang := req.Tracker
+	// 3 查询订单信息
+	res, err := db.QueryProductUpdate(link, req)
+	if err != nil {
+		log.ErrorExit("QueryProductUpdate Query err", err)
+		return lang.Error("msg_products_not_found", err.Error())
+	}
+
+	reply.AppId = req.AppId
+	reply.Product = res
+	return nil
+}
+
+// AsyncUpdateProduct 主动更新商品信息（如库存，价格，状态等）
+func (s *Store) AsyncUpdateProduct(ctx context.Context, req *UpdateRequest, reply *UpdateReply) error {
+	// 1 日志
+	log := lager.FromContext(ctx)
+	defer log.Sync()
+	log.SetOperation("AsyncUpdateProduct", "AsyncUpdateProduct", "async")
+	// 2 获取数据库连接
+	link := s.GetLink(ctx)
+	// 2.1 数据驱动
+	db := s.GetDriver()
+	// 2.2 语言
+	lang := req.Tracker
+	// 商品更新信息限定
+	if req.Values == nil {
+		return lang.Error("msg_products_not_found", "values is nil")
+	}
+	cols := []string{"shop_stock", "status"}
+	for k := range req.Values {
+		if !slices.Contains(cols, k) {
+			return lang.Error("msg_products_not_found", fmt.Sprintf("key %s not in %v", k, cols))
+		}
+	}
+	checks := checker.New(
+		checker.Int64("shop_stock"),
+		checker.Int32("status"),
+	)
+	kv, err := checks.CheckMap(req.Values)
+	if err != nil {
+		return err
+	}
+
+	// 3 查询订单信息
+	status, err := db.AsyncUpdateProduct(link, req, kv)
+	if err != nil {
+		log.ErrorExit("AsyncUpdateProduct Query err", err)
+		return lang.Error("msg_products_not_found", err.Error())
+	}
+
+	reply.AppId = req.AppId
+	reply.Status = status
 	return nil
 }
