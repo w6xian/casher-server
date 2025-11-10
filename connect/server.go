@@ -8,6 +8,7 @@ package connect
 import (
 	"casher-server/internal/command"
 	"casher-server/internal/config"
+	"casher-server/internal/utils"
 	"casher-server/proto"
 	"casher-server/tools"
 	"context"
@@ -89,6 +90,27 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 			if err := w.Close(); err != nil {
 				return
 			}
+		case message, ok := <-ch.rpcCaller:
+			fmt.Println("=============1")
+			//write data dead time , like http timeout , default 10s
+			ch.conn.SetWriteDeadline(time.Now().Add(s.Profile.Server.WriteWait))
+			if !ok {
+				c.Lager.Warn("SetWriteDeadline not ok")
+				ch.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			w, err := ch.conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				c.Lager.Warn(" ch.conn.NextWriter err  ", zap.String("err", err.Error()))
+				return
+			}
+
+			w.Write(utils.Serialize(message))
+			fmt.Println("=============3")
+			if err := w.Close(); err != nil {
+				c.Lager.Error(" w.Close err  ", zap.String("err", err.Error()))
+				return
+			}
 		case <-ticker.C:
 			//heartbeat，if ping error will exit and close current websocket conn
 			ch.conn.SetWriteDeadline(time.Now().Add(s.Profile.Server.WriteWait))
@@ -147,16 +169,23 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		}
 		if message == nil {
 			c.Lager.Error("message is nil")
-			fmt.Println("message is nil")
 			return
 		}
-
 		var connReq *proto.CmdReq
 		if reqErr := json.Unmarshal(message, &connReq); reqErr != nil {
 			c.Lager.Error("message struct ", zap.String("err", reqErr.Error()))
 			return
 		}
+		if connReq.Action == command.ACTION_BACK {
+			backObj := &proto.JsonBackObject{}
+			backObj.Id = connReq.Id
+			backObj.Data = connReq.Data
+			ch.rpcBacker <- backObj
+			continue
+		}
+
 		if ch.UserId > 0 && connReq.Action != command.ACTION_LOGIN && connReq.Action != command.ACTION_LOGOUT {
+			fmt.Println("connReq:", string(message))
 			// 已登录过后，可以互动消息
 			s.operator.HandleMessage(ch, connReq)
 			continue

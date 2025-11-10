@@ -1,6 +1,8 @@
 package command
 
 const (
+	// 回包操作
+	ACTION_BACK = -0xFF
 	// 无效操作
 	ACTION_INVALID = 0x00
 	// 登录操作

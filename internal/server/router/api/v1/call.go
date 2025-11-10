@@ -34,12 +34,14 @@ func (v *Api) Call(w http.ResponseWriter, req *http.Request) ([]byte, error) {
 	if vErr != nil {
 		return nil, muxhttp.NewArgsValidErr(vErr)
 	}
+	if reqData.AppId == "" {
+		reqData.AppId = "610800923266441381"
+		reqData.UserId = 10
+	}
 	_, err := v.Store.Call(ctx, reqData)
 	if err != nil {
 		return nil, muxhttp.NewErr(err)
 	}
-	// if reqData.Id != "" {
 
-	// }
 	return muxhttp.NewRowData(map[string]any{}).ToBytes()
 }

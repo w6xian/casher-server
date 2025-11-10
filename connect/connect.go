@@ -18,6 +18,7 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"modernc.org/mathutil"
@@ -35,6 +36,24 @@ func InitWsLogicServer() *WsLogic {
 		WsLogicObjc = &WsLogic{}
 	})
 	return WsLogicObjc
+}
+
+func (c *WsLogic) Call(ctx context.Context, userId int64, mtd string, data any) ([]byte, error) {
+	if c.Server == nil {
+		return nil, errors.New("server not found")
+	}
+	b := c.Server.Bucket(userId)
+	ch := b.Channel(userId)
+	if ch == nil {
+		return nil, errors.New("channel not found")
+	}
+
+	resp, err := ch.Call(ctx, mtd, data)
+	if err != nil {
+		fmt.Println("Connect layer Call() error", zap.Error(err))
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (c *WsLogic) Channel(ctx context.Context, userId int64, action int, data string) {

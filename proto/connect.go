@@ -12,6 +12,24 @@ type Msg struct {
 	Body      []byte `json:"body"` // binary body bytes
 }
 
+type JsonCallMsg struct {
+	Id     string // user id
+	Method string // service method name
+	Args   any    // binary body bytes
+	Reply  any    // binary body bytes
+}
+type JsonCallObject struct {
+	Id     string `json:"id"`     // user id
+	Action int    `json:"action"` // operation for request
+	Method string `json:"method"` // service method name
+	Data   string `json:"data"`   // binary body bytes
+}
+
+type JsonBackObject struct {
+	Id   string `json:"id"`   // user id
+	Data string `json:"data"` // binary body bytes
+}
+
 type PushMsgRequest struct {
 	UserId int
 	Msg    Msg
