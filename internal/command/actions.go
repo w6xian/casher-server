@@ -2,7 +2,8 @@ package command
 
 const (
 	// 回包操作
-	ACTION_BACK = -0xFF
+	ACTION_CALL  = -0xFF // 别名
+	ACTION_REPLY = -0xFE //
 	// 无效操作
 	ACTION_INVALID = 0x00
 	// 登录操作

@@ -16,6 +16,7 @@ type CmdReq struct {
 	AuthToken string `json:"auth_token"`
 	Data      string `json:"data"` // 操作数据
 	Lang      string `json:"lang"`
+	Method    string `json:"method"` // service method name
 	Ts        int64  `json:"ts"`
 }
 

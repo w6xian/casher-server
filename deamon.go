@@ -170,11 +170,11 @@ func (p *Deamon) run(s service.Service) {
 		// 绑定路由到Http
 		http.Handle("/", r)
 		//初始化加入对应的
-		connect.New(p.Context, p.Profile, logger).Server(wsLogic, r)
+		connect.New(p.Context, p.Profile, logger, actor).Server(wsLogic, r)
 		http.Serve(ln, nil)
 	}()
 	go func() {
-		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance)
+		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance, actor)
 	}()
 	// go func() {
 	// 	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {

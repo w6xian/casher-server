@@ -7,7 +7,6 @@ package connect
 
 import (
 	"casher-server/internal/utils"
-	"casher-server/internal/utils/id"
 	"casher-server/proto"
 	"context"
 	"fmt"
@@ -25,8 +24,8 @@ type Channel struct {
 	Next      *Channel
 	Prev      *Channel
 	broadcast chan *proto.Msg
-	rpcCaller chan *proto.JsonCallObject
-	rpcBacker chan *proto.JsonBackObject
+	rpcCaller chan *JsonCallObject
+	rpcBacker chan *JsonBackObject
 	UserId    int64
 	conn      *websocket.Conn
 	connTcp   *net.TCPConn
@@ -36,8 +35,8 @@ func NewChannel(size int) (c *Channel) {
 	c = new(Channel)
 	c.Lock = sync.Mutex{}
 	c.broadcast = make(chan *proto.Msg, size)
-	c.rpcCaller = make(chan *proto.JsonCallObject, 10)
-	c.rpcBacker = make(chan *proto.JsonBackObject, 10)
+	c.rpcCaller = make(chan *JsonCallObject, 10)
+	c.rpcBacker = make(chan *JsonBackObject, 10)
 	c.Next = nil
 	c.Prev = nil
 	return
@@ -59,12 +58,7 @@ func (ch *Channel) Call(ctx context.Context, mtd string, args any) ([]byte, erro
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	msg := &proto.JsonCallObject{
-		Id:     id.ShortID(),
-		Action: -0xFF,
-		Method: mtd,
-		Data:   string(utils.Serialize(args)),
-	}
+	msg := NewWsJsonCallObject(mtd, []byte(utils.Serialize(args)))
 	// 发送调用请求
 	select {
 	case ch.rpcCaller <- msg:
@@ -72,7 +66,6 @@ func (ch *Channel) Call(ctx context.Context, mtd string, args any) ([]byte, erro
 		return nil, ctx.Err()
 	default:
 	}
-	fmt.Println("Call msg=", msg)
 	// 等待调用结果
 	for {
 		select {
@@ -86,4 +79,20 @@ func (ch *Channel) Call(ctx context.Context, mtd string, args any) ([]byte, erro
 			return nil, ctx.Err()
 		}
 	}
+}
+func (ch *Channel) Reply(id string, data []byte) error {
+	ch.Lock.Lock()
+	defer ch.Lock.Unlock()
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	msg := NewWsJsonBackObject(id, data)
+	// 发送调用请求
+	select {
+	case <-ticker.C:
+		return fmt.Errorf("reply timeout")
+	case ch.rpcBacker <- msg:
+	default:
+	}
+	return nil
 }

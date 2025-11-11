@@ -7,9 +7,11 @@ package connect
 
 import (
 	"casher-server/internal/config"
+	"casher-server/internal/queue"
 	"casher-server/internal/utils/id"
 	"casher-server/proto"
 	"context"
+	"reflect"
 	"sync"
 	"time"
 
@@ -126,15 +128,17 @@ type Connect struct {
 	ServerId string
 	Lager    *zap.Logger
 	Profile  *config.Profile
+	Actor    *queue.ActorPool
 }
 
 // server-bucket-channel
 // each bucket has a channel to send message to client
 
-func New(ctx context.Context, profile *config.Profile, lager *zap.Logger) *Connect {
+func New(ctx context.Context, profile *config.Profile, lager *zap.Logger, actor *queue.ActorPool) *Connect {
 	svr := new(Connect)
 	svr.Profile = profile
 	svr.Lager = lager
+	svr.Actor = actor
 	return svr
 }
 
@@ -165,4 +169,10 @@ func (c *Connect) Server(wsLogic *WsLogic, r *mux.Router) {
 		c.Lager.Panic("Connect layer InitWebsocket() error", zap.Error(err))
 		panic("Connect layer InitWebsocket() error")
 	}
+}
+
+type serviceFns struct {
+	name   string                    // name of service
+	v      reflect.Value             // receiver of methods for the service
+	method map[string]reflect.Method // registered methods
 }
