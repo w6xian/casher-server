@@ -193,6 +193,7 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 		}
 		// 拿到用用户信息
 		userId, roomId, err := s.operator.Connect(connReq)
+		fmt.Println("userId:", userId, "roomId:", roomId, "err:", err)
 		if err != nil {
 			c.Lager.Error("s.operator.Connect error  ", zap.String("err", err.Error()))
 			return

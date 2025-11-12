@@ -3,7 +3,6 @@ package store
 import (
 	"casher-server/internal/errors"
 	"context"
-	"fmt"
 )
 
 type CallReq struct {
@@ -19,6 +18,7 @@ func (c *CallReq) Validate() error {
 }
 
 type CallResp struct {
+	Data string `json:"data"`
 }
 
 func (s *Store) Call(ctx context.Context, req *CallReq) (*CallResp, error) {
@@ -39,6 +39,7 @@ func (s *Store) Call(ctx context.Context, req *CallReq) (*CallResp, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Call resp=", string(resp))
-	return &CallResp{}, nil
+	return &CallResp{
+		Data: string(resp),
+	}, nil
 }

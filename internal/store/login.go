@@ -4,6 +4,7 @@ import (
 	"casher-server/internal/lager"
 	"casher-server/internal/utils/def"
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -91,6 +92,7 @@ func (s *Store) Login(ctx context.Context, req *LoginRequest, reply *LoginReply)
 	// 1 日志
 	log := lager.FromContext(ctx)
 	defer log.Sync()
+	fmt.Println("Login req = ", req)
 	log.SetOperation("AsyncOrders", "AsyncOrders", "async")
 	// 2 获取数据库连接
 	// link := s.GetLink(ctx)

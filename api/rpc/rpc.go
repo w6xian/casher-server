@@ -19,6 +19,7 @@ import (
 var once sync.Once
 
 func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store, actor *queue.ActorPool) {
+
 	once.Do(func() {
 		shop := new(Shop)
 		shop.Profile = profile

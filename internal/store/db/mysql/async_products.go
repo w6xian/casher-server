@@ -12,11 +12,14 @@ func (db *DB) QueryProducts(link sqlm.ITable, req *store.AsyncRequest) (*store.A
 	if limit <= 0 {
 		limit = 10
 	}
-	products, err := link.Table(store.TABLE_COM_SHOPS_PRODUCTS).
-		Where("proxy_id=%d", req.Tracker.ProxyId).
-		And("shop_id=%d", req.Tracker.ShopId).
-		And("id > %d", req.CloudId).
-		OrderASC("id").
+	products, err := link.Table(sqlm.Alias(store.TABLE_COM_SHOPS_PRODUCTS, "s")).
+		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS, "p"), "s.prd_id = p.prd_id").
+		SelectWithAlias("s", "*").
+		SelectWithAlias("p", "prd_name", "prd_sku", "prd_price", "prd_status").
+		Where("s.proxy_id=%d", req.Tracker.ProxyId).
+		And("s.shop_id=%d", req.Tracker.ShopId).
+		And("s.id > %d", req.CloudId).
+		OrderASC("s.id").
 		Limit(limit).
 		QueryMulti()
 	if err != nil {
