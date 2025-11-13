@@ -33,6 +33,29 @@ import (
 	`status` int(11) NOT NULL DEFAULT '0' COMMENT '上架状态:0-下架;1-上架',
 	`intime` int(11) NOT NULL DEFAULT '0' COMMENT '入库时间',
 */
+// type ProductLite struct {
+// 	Id        int64  `json:"id"`
+// 	ProxyId   int64  `json:"proxy_id"`
+// 	ShopId    int64  `json:"shop_id"`
+// 	PrdId     int64  `json:"prd_id"`
+// 	Sn        string `json:"sn"`
+// 	Avatar    string `json:"avatar"`
+// 	Cover     string `json:"cover"`
+// 	Title     string `json:"title"`
+// 	Feature   string `json:"feature"`
+// 	Price     int64  `json:"price"`
+// 	LinePrice int64  `json:"line_price"`
+// 	SaleNum   int64  `json:"sale_num"`
+// 	Times     int32  `json:"times"`
+// 	Weight    int32  `json:"weight"`
+// 	PackName  string `json:"pack_name"`
+// 	ShopStock int64  `json:"shop_stock"`
+// 	Tags      string `json:"tags"`
+// 	Sort      int32  `json:"sort"`
+// 	Status    int32  `json:"status"`
+// 	Intime    int32  `json:"intime"`
+// }
+
 type ProductLite struct {
 	Id        int64  `json:"id"`
 	ProxyId   int64  `json:"proxy_id"`
@@ -52,8 +75,53 @@ type ProductLite struct {
 	ShopStock int64  `json:"shop_stock"`
 	Tags      string `json:"tags"`
 	Sort      int32  `json:"sort"`
-	Status    int32  `json:"status"`
-	Intime    int32  `json:"intime"`
+	// 4件套
+	Status int32 `json:"status"`
+	Uptime int32 `json:"uptime"`
+	Intime int32 `json:"intime"`
+	// 其他
+
+	UnionId string `json:"union_id"`
+	Name    string `json:"name"`
+	Pinyin  string `json:"pinyin"`
+
+	Style      int64 `json:"style"`
+	StyleType  int64 `json:"style_type"`
+	Num        int64 `json:"num,omitempty"`
+	Total      int64 `json:"total,omitempty"`
+	Source     int64 `json:"source"`
+	Type       int64 `json:"type"`
+	PkWeight   int64 `json:"pk_weight"`
+	SpecId     int64 `json:"spec_id"`
+	SpecWeight int64 `json:"spec_weight"`
+	// 200g*20袋 = 箱
+	Spec     int64  `json:"spec"`
+	Unit     string `json:"unit"`
+	PkAmount int64  `json:"pk_amount"`
+	SpecName string `json:"spec_name"`
+	// 库存
+	Stock int64 `json:"stock"`
+	// 内部
+	Mark string `json:"mark"`
+	// 品牌
+	BrandId   int64  `json:"brand_id"`
+	BrandName string `json:"brand_name"`
+	// 单价
+	UnitPrice int64 `json:"unit_price"`
+	PackPrice int64 `json:"pack_price"`
+	// 成本
+	Cost int64 `json:"cost"`
+	//保质期（天）
+	KeepLife int64 `json:"keep_life"`
+	// 保质期单位
+	KeepLifeUnit string `json:"keep_life_unit"`
+	// 分类
+	CategoryId   int64  `json:"category_id,omitempty"`
+	CategoryName string `json:"category_name"`
+	// shopPrd与prd不同
+	MajorPackName string `json:"major_pack_name"`
+	MajorSpecName string `json:"major_spec_name"`
+	MajorPkAmount int64  `json:"major_pk_amount"`
 }
 
 // IdRequestProductReply 商品更新信息请求参数

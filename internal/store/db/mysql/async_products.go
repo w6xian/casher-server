@@ -14,8 +14,12 @@ func (db *DB) QueryProducts(link sqlm.ITable, req *store.AsyncRequest) (*store.A
 	}
 	products, err := link.Table(sqlm.Alias(store.TABLE_COM_SHOPS_PRODUCTS, "s")).
 		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS, "p"), "s.prd_id = p.prd_id").
+		LeftJoin(sqlm.Alias(store.TABLE_CRM_BRANDS, "b"), "p.brand = b.id").
+		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS_CATEGORIES, "c"), "p.cids = c.ctg_id").
 		SelectWithAlias("s", "*").
-		SelectWithAlias("p", "prd_name", "prd_sku", "prd_price", "prd_status").
+		SelectWithAlias("p", "style", "style_type", "pk_amount", "spec", "spec_weight", "unit", "pack_name as major_pack_name", "pk_amount as major_pk_amount", "spec_name as major_spec_name").
+		SelectWithAlias("b", "name as brand_name").
+		SelectWithAlias("c", "name as category_name").
 		Where("s.proxy_id=%d", req.Tracker.ProxyId).
 		And("s.shop_id=%d", req.Tracker.ShopId).
 		And("s.id > %d", req.CloudId).
