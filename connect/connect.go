@@ -20,6 +20,7 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
+	"github.com/louis-xie-programmer/go-local-cache/cache"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -129,15 +130,17 @@ type Connect struct {
 	Lager    *zap.Logger
 	Profile  *config.Profile
 	Actor    *queue.ActorPool
+	cache    *cache.Cache
 }
 
 // server-bucket-channel
 // each bucket has a channel to send message to client
 
-func New(ctx context.Context, profile *config.Profile, lager *zap.Logger, actor *queue.ActorPool) *Connect {
+func New(ctx context.Context, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool) *Connect {
 	svr := new(Connect)
 	svr.Profile = profile
 	svr.Lager = lager
+	svr.cache = cache
 	svr.Actor = actor
 	return svr
 }
@@ -160,7 +163,7 @@ func (c *Connect) Server(wsLogic *WsLogic, r *mux.Router) {
 			RoutineSize:   connectConfig.ConnectBucket.RoutineSize,
 		})
 	}
-	operator := new(DefaultOperator)
+	operator := NewDefaultOperator(c.cache)
 	wsLogic.Server = NewServer(bs, operator, c.Profile, c.Lager)
 	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
 	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))

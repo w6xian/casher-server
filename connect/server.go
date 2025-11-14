@@ -184,6 +184,20 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			ch.rpcBacker <- backObj
 			continue
 		}
+		if connReq.Action == command.ACTION_LOGOUT {
+			if ch.UserId == 0 {
+				c.Lager.Error("userId eq 0")
+				// 登录不成功，就等着下一次登录
+				continue
+			}
+			b := s.Bucket(ch.UserId)
+			//insert into a bucket
+			err = b.Quit(ch)
+			if err != nil {
+				c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
+				ch.conn.Close()
+			}
+		}
 
 		if ch.UserId > 0 && connReq.Action != command.ACTION_LOGIN && connReq.Action != command.ACTION_LOGOUT {
 			fmt.Println("connReq:", string(message))
@@ -191,12 +205,15 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			s.operator.HandleMessage(ch, connReq)
 			continue
 		}
+		// 用户登录
+		// --------------------------
 		// 拿到用用户信息
 		userId, roomId, err := s.operator.Connect(connReq)
 		fmt.Println("userId:", userId, "roomId:", roomId, "err:", err)
 		if err != nil {
 			c.Lager.Error("s.operator.Connect error  ", zap.String("err", err.Error()))
-			return
+			// 登录不成功，就等着下一次登录
+			continue
 		}
 		if userId == 0 {
 			c.Lager.Error("Invalid AuthToken ,userId empty")
@@ -204,17 +221,21 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			continue
 		}
 		if connReq.Action == command.ACTION_LOGIN {
+			if ch.UserId > 0 {
+				// 已登录，判断是否是当前用户
+				if ch.UserId != userId {
+					// 可能是换房间，先退出当前房间
+					oldB := s.Bucket(ch.UserId)
+					err = oldB.Quit(ch)
+					if err != nil {
+						c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
+						ch.conn.Close()
+					}
+				}
+			}
 			b := s.Bucket(userId)
 			//insert into a bucket
 			err = b.Put(userId, roomId, ch)
-			if err != nil {
-				c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
-				ch.conn.Close()
-			}
-		} else if connReq.Action == command.ACTION_LOGOUT {
-			b := s.Bucket(userId)
-			//insert into a bucket
-			err = b.Quit(ch)
 			if err != nil {
 				c.Lager.Error("conn close err: ", zap.String("err", err.Error()))
 				ch.conn.Close()

@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"casher-server/internal/store"
+	"casher-server/proto"
 	"context"
 	"fmt"
 )
@@ -17,7 +18,7 @@ func (c *Shop) ReqPrdBySn(ctx context.Context, req *store.PrdSnReq, reply *store
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := checkSign(req, req.AppId)
+	err := proto.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -37,7 +38,7 @@ func (c *Shop) ReqPrdBySn(ctx context.Context, req *store.PrdSnReq, reply *store
 		return err
 	}
 	// 校验返回签名
-	err = setSign(reply, req.AppId)
+	err = proto.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}

@@ -12,13 +12,14 @@ import (
 	"context"
 	"sync"
 
+	"github.com/louis-xie-programmer/go-local-cache/cache"
 	"github.com/smallnest/rpcx/server"
 	"go.uber.org/zap"
 )
 
 var once sync.Once
 
-func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store, actor *queue.ActorPool) {
+func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store, m *cache.Cache, actor *queue.ActorPool) {
 
 	once.Do(func() {
 		shop := new(Shop)
@@ -27,6 +28,7 @@ func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *za
 		shop.Store = store
 		shop.Actor = actor
 		shop.Language = profile.Apps.Language
+		shop.Cache = m
 
 		s := server.NewServer()
 		s.DisableHTTPGateway = true

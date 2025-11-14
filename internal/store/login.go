@@ -3,6 +3,7 @@ package store
 import (
 	"casher-server/internal/lager"
 	"casher-server/internal/utils/def"
+	"casher-server/proto"
 	"context"
 	"fmt"
 	"time"
@@ -72,15 +73,25 @@ type AuthInfo struct {
 	Intime      int64  `json:"intime"`
 }
 
-func (s *Store) GetAuthInfo(ctx context.Context, mchId, apiKey string) (*AuthInfo, error) {
+// GetUserIds proxyId, shopId, userId 获取用户ID
+func (a *AuthInfo) GetUserIds() (int64, int64, int64) {
+	return a.ProxyId, a.ShopId, a.UserId
+}
+
+func (s *Store) GetAuthInfo(ctx context.Context, req *LoginRequest) (*AuthInfo, error) {
 	// 1 从缓存中获取
-	authInfo, err := s.cache.GetOrLoadCtx(ctx, mchId+apiKey, func(ctx context.Context) (any, time.Duration, error) {
+	authInfo, err := s.cache.GetOrLoadCtx(ctx, req.MchId+req.ApiKey, func(ctx context.Context) (any, time.Duration, error) {
 		link := s.GetLink(ctx)
-		auth, err := s.driver.GetAuthInfo(link, mchId, apiKey)
+		auth, err := s.driver.GetAuthInfo(link, req.MchId, req.ApiKey)
 		if err != nil {
 			return nil, 0, err
 		}
-		return auth, time.Duration(def.GetNumber(s.profile.Cache.Expire, 30)) * time.Second, nil
+		// 校验返回签名
+		err = proto.CheckSign(req, auth.MchId, auth.ApiKey, auth.ApiSecret)
+		if err != nil {
+			return nil, 0, err
+		}
+		return auth, time.Duration(def.GetNumber(s.profile.Cache.Expire, 5)) * time.Second, nil
 	})
 	if err != nil {
 		return nil, err

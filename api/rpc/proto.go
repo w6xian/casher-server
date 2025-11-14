@@ -5,6 +5,7 @@ import (
 	"casher-server/internal/queue"
 	"casher-server/internal/store"
 
+	"github.com/louis-xie-programmer/go-local-cache/cache"
 	"go.uber.org/zap"
 )
 
@@ -14,6 +15,7 @@ type Shop struct {
 	Store    *store.Store
 	Actor    *queue.ActorPool
 	Language string
+	Cache    *cache.Cache
 }
 type RegisterRequest struct {
 	Name     string

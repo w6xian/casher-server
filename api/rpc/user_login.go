@@ -20,15 +20,15 @@ func (c *Shop) AuthLogin(ctx context.Context, req *store.LoginRequest, reply *st
 	defer close()
 
 	// 通过api_key 校验商户是否存在
-	authInfo, err := c.Store.GetAuthInfo(ctx, req.MchId, req.ApiKey)
+	authInfo, err := c.Store.GetAuthInfo(ctx, req)
 	if err != nil {
 		return err
 	}
-	// 校验返回签名
-	err = checkSign(req, authInfo.MchId, authInfo.ApiKey, authInfo.ApiSecret)
-	if err != nil {
-		return err
-	}
+	// // 校验返回签名
+	// err = checkSign(req, authInfo.MchId, authInfo.ApiKey, authInfo.ApiSecret)
+	// if err != nil {
+	// 	return err
+	// }
 
 	// 3 获取日志资料
 	tracker := c.GetTracker(ctx, req)

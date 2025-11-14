@@ -148,6 +148,7 @@ func (p *Deamon) run(s service.Service) {
 	actor.SetProps(workerProps)
 	autoCfg := queue.AutoScalerConfig{Interval: 500 * time.Millisecond, HighThreshold: 6, LowThreshold: 2, ScaleUpStep: 2, ScaleDownStep: 1, Cooldown: 2 * time.Second}
 	actor.StartAutoScaler(autoCfg)
+	// 初始化用户认证
 
 	ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
 	if err != nil {
@@ -170,11 +171,11 @@ func (p *Deamon) run(s service.Service) {
 		// 绑定路由到Http
 		http.Handle("/", r)
 		//初始化加入对应的
-		connect.New(p.Context, p.Profile, logger, actor).Server(wsLogic, r)
+		connect.New(p.Context, p.Profile, logger, m, actor).Server(wsLogic, r)
 		http.Serve(ln, nil)
 	}()
 	go func() {
-		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance, actor)
+		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance, m, actor)
 	}()
 	// go func() {
 	// 	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {

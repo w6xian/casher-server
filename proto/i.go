@@ -5,6 +5,11 @@ import (
 	"encoding/base64"
 )
 
+type IAuthInfo interface {
+	// GetUserIds proxyId, shopId, userId 获取用户ID
+	GetUserIds() (int64, int64, int64)
+}
+
 type IEncrypt interface {
 	SetSign(sign string, ts int64) error
 }

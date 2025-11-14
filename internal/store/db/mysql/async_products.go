@@ -6,24 +6,61 @@ import (
 	"github.com/w6xian/sqlm"
 )
 
+// func (db *DB) QueryProducts(link sqlm.ITable, req *store.AsyncRequest) (*store.AsyncProductsReply, error) {
+// 	reply := &store.AsyncProductsReply{}
+// 	limit := req.Limit
+// 	if limit <= 0 {
+// 		limit = 10
+// 	}
+// 	products, err := link.Table(sqlm.Alias(store.TABLE_COM_SHOPS_PRODUCTS, "s")).
+// 		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS, "p"), "s.prd_id = p.prd_id").
+// 		LeftJoin(sqlm.Alias(store.TABLE_CRM_BRANDS, "b"), "p.brand = b.id").
+// 		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS_CATEGORIES, "c"), "p.cids = c.ctg_id").
+// 		SelectWithAlias("s", "*").
+// 		SelectWithAlias("p", "style", "style_type", "pk_amount", "spec", "spec_weight", "unit", "pack_name as major_pack_name", "pk_amount as major_pk_amount", "spec_name as major_spec_name").
+// 		SelectWithAlias("b", "name as brand_name").
+// 		SelectWithAlias("c", "name as category_name").
+// 		Where("s.proxy_id=%d", req.Tracker.ProxyId).
+// 		And("s.shop_id=%d", req.Tracker.ShopId).
+// 		And("s.id > %d", req.CloudId).
+// 		OrderASC("s.id").
+// 		Limit(limit).
+// 		QueryMulti()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	ps := []*store.ProductLite{}
+// 	err = products.Scan(&ps, func(row *sqlm.Row) any {
+// 		return &store.ProductLite{}
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	row, err := link.Table(store.TABLE_COM_SHOPS_PRODUCTS).
+// 		Count().
+// 		Where("proxy_id=%d", req.Tracker.ProxyId).
+// 		And("shop_id=%d", req.Tracker.ShopId).
+// 		And("id > %d", req.CloudId).
+// 		Query()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	c := row.Get("total").NullInt64()
+// 	reply.Products = ps
+// 	reply.TotalNum = c.Int64
+// 	return reply, nil
+// }
+
 func (db *DB) QueryProducts(link sqlm.ITable, req *store.AsyncRequest) (*store.AsyncProductsReply, error) {
 	reply := &store.AsyncProductsReply{}
 	limit := req.Limit
 	if limit <= 0 {
 		limit = 10
 	}
-	products, err := link.Table(sqlm.Alias(store.TABLE_COM_SHOPS_PRODUCTS, "s")).
-		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS, "p"), "s.prd_id = p.prd_id").
-		LeftJoin(sqlm.Alias(store.TABLE_CRM_BRANDS, "b"), "p.brand = b.id").
-		LeftJoin(sqlm.Alias(store.TABLE_COM_PRODUCTS_CATEGORIES, "c"), "p.cids = c.ctg_id").
-		SelectWithAlias("s", "*").
-		SelectWithAlias("p", "style", "style_type", "pk_amount", "spec", "spec_weight", "unit", "pack_name as major_pack_name", "pk_amount as major_pk_amount", "spec_name as major_spec_name").
-		SelectWithAlias("b", "name as brand_name").
-		SelectWithAlias("c", "name as category_name").
-		Where("s.proxy_id=%d", req.Tracker.ProxyId).
-		And("s.shop_id=%d", req.Tracker.ShopId).
-		And("s.id > %d", req.CloudId).
-		OrderASC("s.id").
+	products, err := link.Table(store.TABLE_COM_SHOPS_PRODUCTS).
+		Where("proxy_id=%d", req.Tracker.ProxyId).
+		And("shop_id=%d", req.Tracker.ShopId).
+		And("uptime > %d", req.LastTime).
 		Limit(limit).
 		QueryMulti()
 	if err != nil {

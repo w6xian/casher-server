@@ -92,7 +92,7 @@ type ProductLite struct {
 	Source     int64 `json:"source"`
 	Type       int64 `json:"type"`
 	PkWeight   int64 `json:"pk_weight"`
-	SpecId     int64 `json:"spec_id"`
+	SpecNameId int64 `json:"spec_name_id"`
 	SpecWeight int64 `json:"spec_weight"`
 	// 200g*20袋 = 箱
 	Spec     int64  `json:"spec"`
