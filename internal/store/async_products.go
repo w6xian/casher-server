@@ -1,8 +1,9 @@
 package store
 
 import (
-	"casher-server/internal/checker"
 	"casher-server/internal/lager"
+	"casher-server/pkg/checker"
+	"casher-server/pkg/mapv"
 	"context"
 	"fmt"
 	"slices"
@@ -311,23 +312,71 @@ func (s *Store) AsyncUpdateProduct(ctx context.Context, req *UpdateRequest, repl
 	if req.Values == nil {
 		return lang.Error("msg_products_not_found", "values is nil")
 	}
-	cols := []string{"shop_stock", "status"}
+	cols := []string{"stock", "price", "cost", "unit_price", "pack_price", "keep_life", "keep_life_unit", "status"}
 	for k := range req.Values {
 		if !slices.Contains(cols, k) {
 			return lang.Error("msg_products_not_found", fmt.Sprintf("key %s not in %v", k, cols))
 		}
 	}
-	checks := checker.New(
-		checker.Int64("shop_stock"),
+
+	checks := checker.New(checker.Int64("stock"),
+		checker.Int64("price"),
+		checker.Int64("cost"),
+		checker.Int64("unit_price"),
+		checker.Int64("pack_price"),
+		checker.Int64("style"),
+		checker.Int64("keep_life"),
+		checker.String("keep_life_unit"),
 		checker.Int32("status"),
 	)
 	kv, err := checks.CheckMap(req.Values)
 	if err != nil {
 		return err
 	}
+	// 4 查询商品信息
+	product, err := db.GetProductByUnionId(link, req.Tracker.ProxyId, req.Tracker.ShopId, req.UnionId)
+	if err != nil {
+		log.ErrorExit("GetProductByUnionId Query err", err)
+		return lang.Error("msg_products_not_found", err.Error())
+	}
+	if product == nil {
+		return lang.Error("msg_products_not_found", fmt.Sprintf("union_id %s not found", req.UnionId))
+	}
+
+	//只更新有差异的字段
+	if product.Uptime > req.Uptime {
+		return lang.Error("msg_products_uptime_invalid", fmt.Sprintf("uptime %d is invalid", req.Uptime))
+	}
+	upValues := map[string]any{}
+	v := mapv.NewMapv(kv)
+	if product.Stock != v.Int64("stock") {
+		upValues["stock"] = v.Int64("stock")
+	}
+	// "stock", "price", "cost", "unit_price", "pack_price", "keep_life", "keep_life_unit", "status"
+	if product.Price != v.Int64("price") {
+		upValues["price"] = v.Int64("price")
+	}
+	if product.Cost != v.Int64("cost") {
+		upValues["cost"] = v.Int64("cost")
+	}
+	if product.UnitPrice != v.Int64("unit_price") {
+		upValues["unit_price"] = v.Int64("unit_price")
+	}
+	if product.PackPrice != v.Int64("pack_price") {
+		upValues["pack_price"] = v.Int64("pack_price")
+	}
+	if product.KeepLife != v.Int64("keep_life") {
+		upValues["keep_life"] = v.Int64("keep_life")
+	}
+	if product.KeepLifeUnit != v.String("keep_life_unit") {
+		upValues["keep_life_unit"] = v.String("keep_life_unit")
+	}
+	if product.Status != v.Int32("status") {
+		upValues["status"] = v.Int32("status")
+	}
 
 	// 3 查询订单信息
-	status, err := db.AsyncUpdateProduct(link, req, kv)
+	status, err := db.AsyncUpdateProduct(link, req, upValues)
 	if err != nil {
 		log.ErrorExit("AsyncUpdateProduct Query err", err)
 		return lang.Error("msg_products_not_found", err.Error())

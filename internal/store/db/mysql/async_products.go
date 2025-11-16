@@ -106,6 +106,24 @@ func (db *DB) QueryProductUpdate(link sqlm.ITable, req *store.IdRequest) (*store
 	return product, nil
 }
 
+// QueryProductUpdate 查询单一商品更新信息
+func (db *DB) GetProductByUnionId(link sqlm.ITable, proxyId int64, shopId int64, unionId string) (*store.ProductLite, error) {
+	product := &store.ProductLite{}
+	prd, err := link.Table(store.TABLE_COM_SHOPS_PRODUCTS).
+		Where("proxy_id=%d", proxyId).
+		And("shop_id=%d", shopId).
+		And("union_id=%s", unionId).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	prd.Scan(product)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
+}
+
 // AsyncUpdateProduct 主动更新商品信息（如库存，价格，状态等）
 func (db *DB) AsyncUpdateProduct(link sqlm.ITable, req *store.UpdateRequest, kv map[string]any) (int64, error) {
 
@@ -113,7 +131,7 @@ func (db *DB) AsyncUpdateProduct(link sqlm.ITable, req *store.UpdateRequest, kv 
 		Update(kv).
 		Where("proxy_id=%d", req.Tracker.ProxyId).
 		And("shop_id=%d", req.Tracker.ShopId).
-		And("id=%d", req.Id).
+		And("union_id=%s", req.UnionId).
 		Execute()
 	if err != nil {
 		return 500, err

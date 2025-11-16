@@ -158,5 +158,3 @@ func (c *Shop) AsyncUpdateProduct(ctx context.Context, req *store.UpdateRequest,
 	}
 	return nil
 }
-
-// 主动更新商品信息（如库存，价格，状态等）

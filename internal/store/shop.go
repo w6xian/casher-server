@@ -60,8 +60,9 @@ func (req *IdRequest) Validate() error {
 // IdRequest 基础请求参数
 type UpdateRequest struct {
 	Req
-	Id     int64          `json:"id"`
-	Values map[string]any `json:"values"`
+	UnionId string         `json:"union_id"`
+	Uptime  int32          `json:"uptime"`
+	Values  map[string]any `json:"values"`
 }
 
 // Validate 校验请求参数
@@ -69,8 +70,8 @@ func (req *UpdateRequest) Validate() error {
 	if req.Tracker == nil {
 		return req.Tracker.Error("msg_tracker_invalid", "tracker is nil")
 	}
-	if req.Id <= 0 {
-		return req.Tracker.Error("msg_id_invalid", fmt.Sprintf("%d", req.Id))
+	if req.UnionId == "" {
+		return req.Tracker.Error("msg_union_id_invalid", fmt.Sprintf("%s", req.UnionId))
 	}
 	return nil
 }
