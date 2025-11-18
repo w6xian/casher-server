@@ -91,15 +91,19 @@ func checkConnection(d *sqlm.Db) error {
 	return errors.Errorf("check connection failed")
 }
 
-func (d *DB) GetConnect(ctx context.Context) context.Context {
-	id := DBId(ctx)
+func (d *DB) getInstance(id int64) *sqlm.Db {
 	db := d.pool.Get().(*sqlm.Db)
 	if err := checkConnection(db); err == nil {
 		d.storeId(id, db)
-		return ctx
+		return db
 
 	}
 	db = sqlm.Major(context.Background())
+	return db
+}
+func (d *DB) GetConnect(ctx context.Context) context.Context {
+	id := DBId(ctx)
+	db := d.getInstance(id)
 	d.storeId(id, db)
 	return ctx
 }
@@ -124,7 +128,8 @@ func (d *DB) GetDb(id int64) *sqlm.Db {
 	if ok {
 		return db
 	}
-	return nil
+	db = d.getInstance(id)
+	return db
 }
 
 func (d *DB) storeId(id int64, db *sqlm.Db) {

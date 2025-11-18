@@ -20,16 +20,16 @@ type Req struct {
 	Action  int64          `json:"type"` //0同步列表 1 商品更新 2 商品删除
 }
 
-func (req *Req) DecryptInfo() (string, int64) {
-	return req.Sign, req.Ts
-}
-
 func (req *Req) GetTrackInfo(ctx context.Context) (string, string, string) {
 	return req.AppId, req.TrackId, req.Lang
 }
 
 func (req *Req) GetOpenId(ctx context.Context) string {
 	return req.OpenId
+}
+
+func (req *Req) DecryptInfo() (string, int64) {
+	return req.Sign, req.Ts
 }
 
 // 实现 IEncrypt

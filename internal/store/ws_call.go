@@ -43,3 +43,25 @@ func (s *Store) Call(ctx context.Context, req *CallReq) (*CallResp, error) {
 		Data: string(resp),
 	}, nil
 }
+func (s *Store) ProdctInfo(ctx context.Context, req *CallReq) (*CallResp, error) {
+	link := s.GetLink(ctx)
+	if link == nil {
+		return nil, errors.New("link not found")
+	}
+	shop, err := s.driver.GetShopByAppId(link, req.AppId)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.WsLogic.Call(ctx, req.UserId, "shop.ProdctInfo", map[string]string{
+		"name":      "ProdctInfo",
+		"app_id":    req.AppId,
+		"shop_name": shop.Name,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &CallResp{
+		Data: string(resp),
+	}, nil
+}

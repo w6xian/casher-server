@@ -46,7 +46,7 @@ func (c *Shop) AuthLogin(ctx context.Context, req *store.LoginRequest, reply *st
 	reply.UserId = authInfo.UserId
 	reply.RoomId = authInfo.ShopId
 	// 校验返回签名
-	err = setSign(reply, authInfo.MchId, authInfo.ApiKey, authInfo.ApiSecret)
+	err = store.SetSign(reply, authInfo.MchId, authInfo.ApiKey, authInfo.ApiSecret)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"casher-server/internal/store"
-	"casher-server/proto"
 	"context"
 	"fmt"
 )
@@ -18,7 +17,7 @@ func (c *Shop) AsyncProducts(ctx context.Context, req *store.AsyncRequest, reply
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,7 @@ func (c *Shop) AsyncProducts(ctx context.Context, req *store.AsyncRequest, reply
 		return err
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -56,7 +55,7 @@ func (c *Shop) AsyncProductsExtra(ctx context.Context, req *store.AsyncRequest, 
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -76,7 +75,7 @@ func (c *Shop) AsyncProductsExtra(ctx context.Context, req *store.AsyncRequest, 
 		return err
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -94,7 +93,7 @@ func (c *Shop) AsyncProductLite(ctx context.Context, req *store.IdRequest, reply
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -114,7 +113,7 @@ func (c *Shop) AsyncProductLite(ctx context.Context, req *store.IdRequest, reply
 		return err
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -132,7 +131,7 @@ func (c *Shop) AsyncUpdateProduct(ctx context.Context, req *store.UpdateRequest,
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -152,7 +151,7 @@ func (c *Shop) AsyncUpdateProduct(ctx context.Context, req *store.UpdateRequest,
 		return err
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}

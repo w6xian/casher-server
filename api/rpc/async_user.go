@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"casher-server/internal/store"
-	"casher-server/proto"
 	"context"
 	"fmt"
 )
@@ -18,7 +17,7 @@ func (c *Shop) AsyncUsers(ctx context.Context, req *store.AsyncRequest, reply *s
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -38,7 +37,7 @@ func (c *Shop) AsyncUsers(ctx context.Context, req *store.AsyncRequest, reply *s
 		return err
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -56,7 +55,7 @@ func (c *Shop) AsyncUsersExtra(ctx context.Context, req *store.AsyncRequest, rep
 	ctx, stop := c.Start(ctx)
 	defer stop()
 	// 校验返回签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return err
 	}
@@ -76,7 +75,7 @@ func (c *Shop) AsyncUsersExtra(ctx context.Context, req *store.AsyncRequest, rep
 		return err
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return err
 	}

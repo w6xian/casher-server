@@ -3,7 +3,6 @@ package store
 import (
 	"casher-server/internal/lager"
 	"casher-server/internal/utils/def"
-	"casher-server/proto"
 	"context"
 	"fmt"
 	"time"
@@ -87,7 +86,7 @@ func (s *Store) GetAuthInfo(ctx context.Context, req *LoginRequest) (*AuthInfo, 
 			return nil, 0, err
 		}
 		// 校验返回签名
-		err = proto.CheckSign(req, auth.MchId, auth.ApiKey, auth.ApiSecret)
+		err = CheckSign(req, auth.MchId, auth.ApiKey, auth.ApiSecret)
 		if err != nil {
 			return nil, 0, err
 		}

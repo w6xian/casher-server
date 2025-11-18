@@ -24,6 +24,7 @@ const (
 	// bool
 	CHECKER_TYPE_BOOL
 	CHECKER_TYPE_OTHER
+	CHECKER_TYPE_STRINGS
 )
 
 type Checks struct {
@@ -64,21 +65,15 @@ func (c *Checks) CheckMap(values map[string]any) (map[string]any, error) {
 		}
 		kv[k] = rv
 	}
-	return kv, nil
-}
-func (c *Checks) Check(values map[string]any) error {
-	// for values check
-	for k, v := range values {
-		checker := c.Get(k)
-		if checker == nil {
-			continue
-		}
-		_, err := checker.Check(v)
-		if err != nil {
-			return err
+	// 没有的话，添加默认值
+	for k, checker := range c.Values {
+		if checker.opts.defaultValue != nil {
+			if _, ok := kv[k]; !ok {
+				kv[k] = checker.opts.defaultValue
+			}
 		}
 	}
-	return nil
+	return kv, nil
 }
 
 type Checker struct {
@@ -142,6 +137,12 @@ func (c *Checker) Check(value any) (any, error) {
 		v, ok := value.(string)
 		if !ok {
 			return nil, fmt.Errorf("checker %s type error, expect string, got %T", c.Name, value)
+		}
+		return v, nil
+	case CHECKER_TYPE_STRINGS:
+		v, ok := value.([]any)
+		if !ok {
+			return nil, fmt.Errorf("checker %s type error, expect []any, got %T", c.Name, value)
 		}
 		return v, nil
 	case CHECKER_TYPE_BOOL:

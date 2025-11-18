@@ -3,15 +3,19 @@ package checker
 type Option func(*Options)
 
 type Options struct {
-	Min     float64
-	Max     float64
-	checker func(v any) (any, error)
+	Min          float64
+	Max          float64
+	defaultValue any
+	Required     bool
+	checker      func(v any) (any, error)
 }
 
 func newOptions(opt ...Option) Options {
 	def := Options{
-		Min: 0,
-		Max: 0,
+		Min:          0,
+		Max:          0,
+		defaultValue: nil,
+		Required:     true,
 	}
 	for _, o := range opt {
 		o(&def)
@@ -25,9 +29,21 @@ func Min(min float64) Option {
 		o.Min = min
 	}
 }
-func Max(min float64) Option {
+func Max(max float64) Option {
 	return func(o *Options) {
-		o.Max = min
+		o.Max = max
+	}
+}
+
+func Required(req bool) Option {
+	return func(o *Options) {
+		o.Required = req
+	}
+}
+
+func DefaultValue(def any) Option {
+	return func(o *Options) {
+		o.defaultValue = def
 	}
 }
 
@@ -46,6 +62,14 @@ func String(name string, option ...Option) *Checker {
 	return c
 }
 
+func Strings(name string, option ...Option) *Checker {
+	c := &Checker{
+		Name: name,
+		Type: CHECKER_TYPE_STRINGS,
+	}
+	c.opts = newOptions(option...)
+	return c
+}
 func Int(name string, option ...Option) *Checker {
 	c := &Checker{
 		Name: name,

@@ -3,7 +3,6 @@ package rpc
 import (
 	"casher-server/internal/i18n"
 	"casher-server/internal/store"
-	"casher-server/proto"
 	"context"
 	"fmt"
 )
@@ -21,7 +20,7 @@ func (c *Shop) GetCompanyBySn(ctx context.Context, req *store.CompanySnReq, repl
 	// 1 获取日志资料
 	lang := c.GetTracker(ctx, req)
 	// 2 校验请求签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return lang.Error("get_company_by_sn_req_sign", "请求签名校验失败:{{.error}}", i18n.String("error", err.Error()))
 	}
@@ -40,7 +39,7 @@ func (c *Shop) GetCompanyBySn(ctx context.Context, req *store.CompanySnReq, repl
 		return lang.Error("get_company_by_sn_reply", "查询公司信息失败:{{.error}}", i18n.String("error", err.Error()))
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
 		return lang.Error("get_company_by_sn_reply_sign", "设置签名失败:{{.error}}", i18n.String("error", err.Error()))
 	}
@@ -60,7 +59,7 @@ func (c *Shop) GetCompanyByName(ctx context.Context, req *store.CompanyNameReq, 
 	// 1 获取日志资料
 	lang := c.GetTracker(ctx, req)
 	// 2 校验请求签名
-	err := proto.CheckSign(req, req.AppId)
+	err := store.CheckSign(req, req.AppId)
 	if err != nil {
 		return lang.Error("get_company_by_name_req_sign", "请求签名校验失败:{{.error}}", i18n.String("error", err.Error()))
 	}
@@ -79,9 +78,9 @@ func (c *Shop) GetCompanyByName(ctx context.Context, req *store.CompanyNameReq, 
 		return lang.Error("get_company_by_name_reply", "查询公司信息失败:{{.error}}", i18n.String("error", err.Error()))
 	}
 	// 校验返回签名
-	err = proto.SetSign(reply, req.AppId)
+	err = store.SetSign(reply, req.AppId)
 	if err != nil {
-		return lang.Error("get_company_by_sn_reply_sign", "设置签名失败:{{.error}}", i18n.String("error", err.Error()))
+		return lang.Error("get_company_by_name_reply_sign", "设置签名失败:{{.error}}", i18n.String("error", err.Error()))
 	}
 	return nil
 }

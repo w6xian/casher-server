@@ -17,6 +17,7 @@ func TestCheckMap(t *testing.T) {
 		Float32("float32"),
 		Float64("float64"),
 		String("string"),
+		String("def", DefaultValue("default")),
 		Others("other", func(v any) (any, error) {
 			fmt.Printf("other: %v\n", v)
 			value, ok := v.([]string)
@@ -37,11 +38,15 @@ func TestCheckMap(t *testing.T) {
 		"float32": float32(1.32),
 		"float64": float64(0.64),
 		"string":  "abcede",
+		"def":     "a",
 		"other":   []string{"a", "b", "c"},
 	}
 
 	kv, err := checks.CheckMap(kv)
 	if err != nil {
 		t.Errorf("CheckMap %v failed. err: %v", kv, err)
+	}
+	for k, v := range kv {
+		fmt.Printf("%s: %v\n", k, v)
 	}
 }
