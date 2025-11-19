@@ -112,6 +112,10 @@ func CheckSign(req IDecrypt, cs ...string) error {
 	if ts == 0 {
 		return fmt.Errorf("ts is empty")
 	}
+	// ts 校验是否过期（30秒）
+	if ts < time.Now().Unix()-30 {
+		return fmt.Errorf("sign expired")
+	}
 	// 校验 sign 是否为空
 	if sign == "" {
 		return fmt.Errorf("sign is empty")

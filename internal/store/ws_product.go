@@ -80,7 +80,7 @@ func (s *Store) ProductsInfo(ctx context.Context, req *CallReq) (*CallResp, erro
 			AppId: shop.AppId,
 			Data: map[string]any{
 				"union_ids": pReq.UnionId,
-				"columns":   []string{"stock", "union_id"},
+				"columns":   []string{"*"},
 			},
 		})
 	if err != nil {

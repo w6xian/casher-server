@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 )
 
 type SystemReq struct {
@@ -17,11 +18,13 @@ func (c *SystemReq) Validate() error {
 }
 
 type SystemResp struct {
+	APIReq
 	Data string `json:"data"`
 }
 
 func (s *Store) SystemInfo(ctx context.Context, req *SystemReq) (*SystemResp, error) {
-
+	// 有多少人在线
 	resp := &SystemResp{}
+	resp.Data = fmt.Sprintf("online: %d", 2)
 	return resp, nil
 }

@@ -9,7 +9,6 @@ import (
 	"casher-server/internal/command"
 	"casher-server/internal/config"
 	"casher-server/internal/queue"
-	"casher-server/internal/utils"
 	"casher-server/proto"
 	"casher-server/tools"
 	"context"
@@ -70,6 +69,11 @@ func (s *Server) Broadcast(ctx context.Context, msg *proto.Msg) error {
 }
 
 func (s *Server) writePump(ch *Channel, c *Connect) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println("writePump recover err :", err)
+		}
+	}()
 	//PingPeriod default eq 54s
 	ticker := time.NewTicker(s.Profile.Server.PingPeriod)
 	defer func() {
@@ -87,13 +91,8 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 				ch.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			w, err := ch.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				c.Lager.Warn(" ch.conn.NextWriter err  ", zap.String("err", err.Error()))
-				return
-			}
-			w.Write(message.Body)
-			if err := w.Close(); err != nil {
+			if err := slicesSend(getSliceName(), ch.conn, message.Body, 32); err != nil {
+				c.Lager.Error(" SlicesSend err  ", zap.String("err", err.Error()))
 				return
 			}
 		case message, ok := <-ch.rpcCaller:
@@ -104,14 +103,8 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 				ch.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			w, err := ch.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				c.Lager.Warn(" ch.conn.NextWriter err  ", zap.String("err", err.Error()))
-				return
-			}
-			w.Write(utils.Serialize(message))
-			if err := w.Close(); err != nil {
-				c.Lager.Error(" w.Close err  ", zap.String("err", err.Error()))
+			if err := slicesSend(getSliceName(), ch.conn, Serialize(message), 32); err != nil {
+				c.Lager.Error(" SlicesSend err  ", zap.String("err", err.Error()))
 				return
 			}
 		case <-ticker.C:
@@ -137,6 +130,11 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 }
 
 func (s *Server) readPump(ch *Channel, c *Connect) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println("readPump recover err :", err)
+		}
+	}()
 	defer func() {
 		c.Lager.Info("start exec disConnect ...")
 		if ch.Room == nil || ch.UserId == 0 {
@@ -170,12 +168,15 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 				return
 			}
 		}
-		if message == nil {
-			c.Lager.Error("message is nil")
-			return
+		// 消息体可能太大，需要分片接收后再解析
+		// 实现分片接收的函数
+		m, err := receiveMessage(ch.conn, message)
+		if err != nil {
+			c.Lager.Error("ReceiveMessage err  ", zap.String("err", err.Error()))
+			continue
 		}
 		var connReq *proto.CmdReq
-		if reqErr := json.Unmarshal(message, &connReq); reqErr != nil {
+		if reqErr := json.Unmarshal(m, &connReq); reqErr != nil {
 			c.Lager.Error("message struct ", zap.String("err", reqErr.Error()))
 			return
 		}

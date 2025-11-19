@@ -3,6 +3,7 @@ package v1
 import (
 	"casher-server/internal/muxhttp"
 	"casher-server/internal/store"
+	"casher-server/internal/utils"
 	"fmt"
 	"net/http"
 )
@@ -24,6 +25,7 @@ func (v *Api) SystemInfo(w http.ResponseWriter, req *http.Request) ([]byte, erro
 	if aErr != nil {
 		return nil, muxhttp.NewArgsErr(aErr)
 	}
+	fmt.Println(string(utils.Serialize(reqData)))
 	err := store.CheckSign(reqData, reqData.AppId)
 	if err != nil {
 		return nil, muxhttp.NewArgsErr(err)
@@ -47,6 +49,12 @@ func (v *Api) SystemInfo(w http.ResponseWriter, req *http.Request) ([]byte, erro
 	if err != nil {
 		return nil, muxhttp.NewErr(err)
 	}
+	resp.AppId = reqData.AppId
+	// 增加签名
+	err = store.SetSign(resp, reqData.AppId)
+	if err != nil {
+		return nil, muxhttp.NewErr(err)
+	}
 
-	return muxhttp.NewRiskData(resp.Data).ToBytes()
+	return muxhttp.NewRiskData(resp).ToBytes()
 }
