@@ -126,11 +126,13 @@ func (c *WsLogic) Broadcast(ctx context.Context, action int, data string) {
 }
 
 type Connect struct {
-	ServerId string
-	Lager    *zap.Logger
-	Profile  *config.Profile
-	Actor    *queue.ActorPool
-	cache    *cache.Cache
+	ServerId     string
+	Lager        *zap.Logger
+	Profile      *config.Profile
+	Actor        *queue.ActorPool
+	cache        *cache.Cache
+	serviceMapMu sync.RWMutex
+	serviceMap   map[string]*serviceFns
 }
 
 // server-bucket-channel
@@ -139,6 +141,8 @@ type Connect struct {
 func New(ctx context.Context, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool) *Connect {
 	svr := new(Connect)
 	svr.Profile = profile
+	svr.serviceMapMu = sync.RWMutex{}
+	svr.serviceMap = make(map[string]*serviceFns)
 	svr.Lager = lager
 	svr.cache = cache
 	svr.Actor = actor
@@ -164,7 +168,7 @@ func (c *Connect) Server(wsLogic *WsLogic, r *mux.Router) {
 		})
 	}
 	operator := NewDefaultOperator(c.cache)
-	wsLogic.Server = NewServer(bs, operator, c.Profile, c.Lager)
+	wsLogic.Server = NewServer(bs, operator, c.Profile, c.Lager, c.serviceMap)
 	c.ServerId = fmt.Sprintf("%s-%s", "ws", id.ShortID())
 	c.Lager.Info("Connect layer server id", zap.String("server_id", c.ServerId))
 	//start Connect layer server handler persistent connection
@@ -172,6 +176,85 @@ func (c *Connect) Server(wsLogic *WsLogic, r *mux.Router) {
 		c.Lager.Panic("Connect layer InitWebsocket() error", zap.Error(err))
 		panic("Connect layer InitWebsocket() error")
 	}
+}
+
+func (c *Connect) RegisterName(name string, rcvr any, metadata string) error {
+	_, err := c.register(name, rcvr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RegisterName registers the receiver object for the given name.
+// methodName is the name of the method to register.
+func (c *Connect) register(name string, rcvr any) (string, error) {
+	c.serviceMapMu.Lock()
+	defer c.serviceMapMu.Unlock()
+
+	service := new(serviceFns)
+	getType := reflect.TypeOf(rcvr)
+	service.v = reflect.ValueOf(rcvr)
+	k := getType.Kind()
+	if k == reflect.Pointer {
+		el := getType.Elem()
+		sname := fmt.Sprintf("%s.%s", el.PkgPath(), el.Name())
+		service.name = sname
+	} else {
+		sname := fmt.Sprintf("%s.%s", getType.PkgPath(), getType.Name())
+		service.name = sname
+	}
+	// Install the methods
+	service.method = suitableMethods(getType)
+	fmt.Println("suitableMethods methods = ", service.name)
+	c.serviceMap[name] = service
+	return service.name, nil
+}
+
+// Precompute the reflect type for context.
+var typeOfContext = reflect.TypeOf((*context.Context)(nil)).Elem()
+
+// Precompute the reflect type for error.
+var typeOfError = reflect.TypeOf((*error)(nil)).Elem()
+
+func suitableMethods(typ reflect.Type) map[string]reflect.Method {
+	methods := make(map[string]reflect.Method)
+	for m := 0; m < typ.NumMethod(); m++ {
+		m := typ.Method(m)
+		// 这里可以加一些方法需要什么样的参数，比如第一个参数必须是context.Context
+		if m.Type.NumIn() < 2 || m.Type.In(1) != reflect.TypeOf((*context.Context)(nil)).Elem() {
+			continue
+		}
+		// Method must be exported.
+		if m.PkgPath != "" {
+			continue
+		}
+		if !m.IsExported() {
+			continue
+		}
+		// 只限定第一个参数，一这是context.Context，后面的参数可以是任意类型
+		if m.Type.NumIn() < 2 {
+			panic(fmt.Sprintf("method %s must have at least 1 arguments", m.Name))
+		}
+		arg1 := m.Type.In(1)
+		// 判定第一个参数是不是context.Context
+		if !arg1.Implements(typeOfContext) {
+			panic(fmt.Sprintf("method %s must have at least 1 arguments, first argument must be context.Context", m.Name))
+		}
+		// 返回值最后一个值需要是error
+		if m.Type.NumOut() < 1 {
+			panic(fmt.Sprintf("method %s must have 1-2 return value and last return value must be error", m.Name))
+		}
+		if m.Type.NumOut() > 2 {
+			panic(fmt.Sprintf("method %s must have 1-2 return values and last return value must be error", m.Name))
+		}
+		out := m.Type.Out(m.Type.NumOut() - 1)
+		if !out.Implements(typeOfError) {
+			panic(fmt.Sprintf("method %s must have at least 1 return value, last return value must be error", m.Name))
+		}
+		methods[m.Name] = m
+	}
+	return methods
 }
 
 type serviceFns struct {

@@ -192,10 +192,10 @@ func (s *Store) ShopLink(ctx context.Context, req *ShopLinkReq, reply *ShopLinkR
 	}
 	// 对比密码
 	// 请用PHP中的password_verify函数对比密码，给出Golang的实现
-	fmt.Println("ShopLink req.Password=", req.Password)
-	fmt.Println("ShopLink admin.Password=", admin.Password)
-	fmt.Println("ShopLink utils.MD5(utils.MD5(req.Password))=", utils.MD5(utils.MD5(strings.TrimSpace(req.Password))))
-	fmt.Println("ShopLink utils.MD5(utils.MD5(strings.TrimSpace(req.Password)))=", utils.VerifyPassword(utils.MD5(utils.MD5(strings.TrimSpace(req.Password))), admin.Password))
+	// fmt.Println("ShopLink req.Password=", req.Password)
+	// fmt.Println("ShopLink admin.Password=", admin.Password)
+	// fmt.Println("ShopLink utils.MD5(utils.MD5(req.Password))=", utils.MD5(utils.MD5(strings.TrimSpace(req.Password))))
+	// fmt.Println("ShopLink utils.MD5(utils.MD5(strings.TrimSpace(req.Password)))=", utils.VerifyPassword(utils.MD5(utils.MD5(strings.TrimSpace(req.Password))), admin.Password))
 	if !utils.VerifyPassword(utils.MD5(utils.MD5(strings.TrimSpace(req.Password))), admin.Password) {
 		return lang.Error("shop_link_password", "店铺链接密码错误")
 	}

@@ -9,6 +9,7 @@ import (
 	"casher-server/internal/command"
 	"casher-server/internal/config"
 	"casher-server/internal/queue"
+	"casher-server/internal/utils"
 	"casher-server/proto"
 	"casher-server/tools"
 	"context"
@@ -34,11 +35,13 @@ type Server struct {
 	serviceMap   map[string]*serviceFns
 }
 
-func NewServer(b []*Bucket, o Operator, profile *config.Profile, lager *zap.Logger) *Server {
+func NewServer(b []*Bucket, o Operator, profile *config.Profile, lager *zap.Logger, fns map[string]*serviceFns) *Server {
 	s := new(Server)
 	s.Buckets = b
 	s.Profile = profile
 	s.bucketIdx = uint32(len(b))
+	s.serviceMapMu = sync.RWMutex{}
+	s.serviceMap = fns
 	s.operator = o
 	s.Lager = lager
 	return s
@@ -107,6 +110,16 @@ func (s *Server) writePump(ch *Channel, c *Connect) {
 				c.Lager.Error(" SlicesSend err  ", zap.String("err", err.Error()))
 				return
 			}
+		case message, ok := <-ch.rpcBacker:
+			//write data dead time , like http timeout , default 10s
+			ch.conn.SetWriteDeadline(time.Now().Add(s.Profile.Server.WriteWait))
+			if !ok {
+				ch.conn.WriteMessage(websocket.CloseMessage, []byte{})
+				return
+			}
+			if err := slicesSend(getSliceName(), ch.conn, utils.Serialize(message), 32); err != nil {
+				return
+			}
 		case <-ticker.C:
 			//heartbeat，if ping error will exit and close current websocket conn
 			ch.conn.SetWriteDeadline(time.Now().Add(s.Profile.Server.WriteWait))
@@ -161,12 +174,15 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 	})
 
 	for {
-		_, message, err := ch.conn.ReadMessage()
+		msgType, message, err := ch.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				c.Lager.Error("readPump ReadMessage err  ", zap.String("err", err.Error()))
 				return
 			}
+		}
+		if message == nil || msgType == -1 {
+			return
 		}
 		// 消息体可能太大，需要分片接收后再解析
 		// 实现分片接收的函数
@@ -180,6 +196,13 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 			c.Lager.Error("message struct ", zap.String("err", reqErr.Error()))
 			return
 		}
+
+		if connReq.Action == command.ACTION_CALL {
+			// 调用方法
+			s.HandleMessage(ch, connReq)
+			continue
+		}
+
 		if connReq.Action == command.ACTION_REPLY {
 			backObj := NewWsJsonBackObject(connReq.Id, []byte(connReq.Data))
 			ch.rpcBacker <- backObj
@@ -255,7 +278,7 @@ func (s *Server) readPump(ch *Channel, c *Connect) {
 // 有两种情况：
 // 1. 服务器主动推送消息，需要调用本地方法处理
 // 2. 服务器调用本地方法，需要返回结果
-func (s *Server) HandleMessage(ch *Channel, msgReq *proto.CmdReq) {
+func (s *Server) HandleMessage(ch IWsReply, msgReq *proto.CmdReq) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println("HandleMessage recover err :", err)
@@ -265,7 +288,6 @@ func (s *Server) HandleMessage(ch *Channel, msgReq *proto.CmdReq) {
 	if msgReq.Action == command.ACTION_CALL {
 		parts := strings.Split(msgReq.Method, ".")
 		if len(parts) != 2 {
-			fmt.Println("HandleMessage msgReq = ", msgReq.Id, msgReq.Method, msgReq.Data)
 			return
 		}
 		serviceName := parts[0]
@@ -275,12 +297,10 @@ func (s *Server) HandleMessage(ch *Channel, msgReq *proto.CmdReq) {
 
 		serviceFns, ok := s.serviceMap[serviceName]
 		if !ok {
-			fmt.Println("HandleMessage msgReq = ", msgReq.Id, msgReq.Method, msgReq.Data)
 			return
 		}
 		mtd, ok := serviceFns.method[methodName]
 		if !ok {
-			fmt.Println("HandleMessage msgReq = ", msgReq.Id, msgReq.Method, msgReq.Data)
 			return
 		}
 		ret := mtd.Func.Call([]reflect.Value{
@@ -289,12 +309,10 @@ func (s *Server) HandleMessage(ch *Channel, msgReq *proto.CmdReq) {
 			reflect.ValueOf(msgReq.Data),
 		})
 		if len(ret) != 2 {
-			fmt.Println("HandleMessage mtd.method.Func.Call rst  ", ret)
 			return
 		}
 		err, ok := ret[1].Interface().(error)
 		if ok && err != nil {
-			fmt.Println("HandleMessage msgReq = ", msgReq.Id, msgReq.Method, msgReq.Data, err.Error())
 			return
 		}
 		// 调用成功，返回结果

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync/atomic"
+	"unicode/utf8"
 
 	"github.com/gorilla/websocket"
 )
@@ -44,22 +45,27 @@ func getSlice(message []byte) (DataSlice, error) {
 }
 
 func getSliceArray(n string, message []byte, sliceSize int) ([]*DataSlice, error) {
-	totalSize := len(message)
+	// 这里可能有汉字
+	msg := []rune(string(message))
+	totalSize := len(msg)
 	totalSlice := totalSize / sliceSize
 	if totalSize%sliceSize != 0 {
 		totalSlice++
 	}
+	// 转换为字符串，判断真实长度
+
 	slices := make([]*DataSlice, 0, totalSlice)
 	for i := 0; i < totalSlice; i++ {
 		start := i * sliceSize
 		end := start + sliceSize
 		end = min(end, totalSize)
+
 		slices = append(slices, &DataSlice{
 			N: n,
 			T: totalSlice,
 			I: i,
 			S: totalSize,
-			D: message[start:end],
+			D: []byte(string(msg[start:end])),
 		})
 	}
 	return slices, nil
@@ -100,21 +106,26 @@ func receiveMessage(conn *websocket.Conn, message []byte) ([]byte, error) {
 	}
 
 	for {
-		_, message, err := conn.ReadMessage()
+		msgType, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				return nil, err
 			}
 		}
+		if message == nil || msgType == -1 {
+			return nil, fmt.Errorf("message is nil or msgType is -1")
+		}
 		slices, err := getSlice(message)
 		if err != nil {
 			return nil, err
 		}
+
 		if id != slices.N {
 			return nil, fmt.Errorf("id not match")
 		}
 		data = append(data, slices.D...)
-		if len(data) == slices.S {
+		realSize := utf8.RuneCountInString(string(data))
+		if realSize == slices.S {
 			return data, nil
 		}
 	}

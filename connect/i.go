@@ -9,3 +9,7 @@ type Operator interface {
 	DisConnect(disConn *proto.DisConnectRequest) (err error)
 	HandleMessage(ch *Channel, message *proto.CmdReq)
 }
+
+type IWsReply interface {
+	Reply(id string, data []byte) (err error)
+}

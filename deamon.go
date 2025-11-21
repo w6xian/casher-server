@@ -18,6 +18,7 @@ import (
 	v1 "casher-server/internal/server/router/api/v1"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
+	"casher-server/internal/wsfuns"
 
 	"casher-server/internal/command"
 
@@ -171,7 +172,15 @@ func (p *Deamon) run(s service.Service) {
 		// 绑定路由到Http
 		http.Handle("/", r)
 		//初始化加入对应的
-		connect.New(p.Context, p.Profile, logger, m, actor).Server(wsLogic, r)
+		// 启动 websocketr
+		wsServer := connect.New(p.Context, p.Profile, logger, m, actor)
+		wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance)
+		// 注册服务器方法，暴露给客户端
+		err := wsServer.RegisterName("v1", wsServerApi, "")
+		if err != nil {
+			logger.Error("wsServer.RegisterName error", zap.Error(err))
+		}
+		wsServer.Server(wsLogic, r)
 		http.Serve(ln, nil)
 	}()
 	go func() {

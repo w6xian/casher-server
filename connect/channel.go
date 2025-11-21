@@ -52,47 +52,46 @@ func (ch *Channel) Push(ctx context.Context, msg *proto.Msg) (err error) {
 	return
 }
 
+func (c *Channel) Reply(id string, data []byte) (err error) {
+	if c.conn == nil {
+		return
+	}
+	msg := NewWsJsonBackObject(id, data)
+	select {
+	case c.rpcBacker <- msg:
+	default:
+	}
+	return
+}
+
 func (ch *Channel) Call(ctx context.Context, mtd string, args any) ([]byte, error) {
 	ch.Lock.Lock()
 	defer ch.Lock.Unlock()
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	msg := NewWsJsonCallObject(mtd, []byte(utils.Serialize(args)))
+	msg := NewWsJsonCallObject(mtd, utils.Serialize(args))
 	// 发送调用请求
 	select {
+	case <-ticker.C:
+		return []byte{}, fmt.Errorf("call timeout")
 	case ch.rpcCaller <- msg:
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	default:
 	}
+	ticker.Reset(5 * time.Second)
 	// 等待调用结果
 	for {
 		select {
 		case <-ticker.C:
-			return nil, fmt.Errorf("call timeout")
-		case back := <-ch.rpcBacker:
-			if back.Id == msg.Id {
+			return []byte{}, fmt.Errorf("reply timeout")
+		case back, ok := <-ch.rpcBacker:
+			if back.Id == msg.Id && ok {
 				return []byte(back.Data), nil
 			}
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			return []byte{}, ctx.Err()
 		}
 	}
-}
-func (ch *Channel) Reply(id string, data []byte) error {
-	ch.Lock.Lock()
-	defer ch.Lock.Unlock()
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	msg := NewWsJsonBackObject(id, data)
-	// 发送调用请求
-	select {
-	case <-ticker.C:
-		return fmt.Errorf("reply timeout")
-	case ch.rpcBacker <- msg:
-	default:
-	}
-	return nil
 }
