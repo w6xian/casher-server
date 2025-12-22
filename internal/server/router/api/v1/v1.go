@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"casher-server/connect"
 	"casher-server/internal/config"
 	"casher-server/internal/muxhttp"
 	"casher-server/internal/queue"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/louis-xie-programmer/go-local-cache/cache"
+	"github.com/w6xian/sloth"
 	"go.uber.org/zap"
 )
 
@@ -23,11 +23,11 @@ type Api struct {
 	Lager   *zap.Logger
 	Cache   *cache.Cache
 	Actor   *queue.ActorPool
-	WsLogic *connect.WsLogic
+	WsLogic *sloth.ClientRpc
 	Store   *store.Store
 }
 
-func NewApi(ctx context.Context, storeInstance *store.Store, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool, wsLogic *connect.WsLogic) *Api {
+func NewApi(ctx context.Context, storeInstance *store.Store, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool, wsLogic *sloth.ClientRpc) *Api {
 	return &Api{
 		Context: ctx,
 		Profile: profile,

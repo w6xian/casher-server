@@ -2,20 +2,15 @@ package main
 
 import (
 	"casher-server/api/rpc"
-	"casher-server/connect"
 	"context"
 	"flag"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"time"
 
 	"casher-server/internal/config"
 	"casher-server/internal/i18n"
-	"casher-server/internal/server/router"
-	v1 "casher-server/internal/server/router/api/v1"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
 	"casher-server/internal/wsfuns"
@@ -27,9 +22,8 @@ import (
 
 	"casher-server/internal/queue"
 
-	"casher-server/internal/muxhttp/mw"
-
-	"github.com/gorilla/mux"
+	"github.com/w6xian/sloth"
+	"github.com/w6xian/sloth/nrpc/wsocket"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -114,7 +108,7 @@ func (p *Deamon) run(s service.Service) {
 	if err != nil {
 		panic(err)
 	}
-	wsLogic := connect.InitWsLogicServer()
+	wsLogic := sloth.DefaultServer()
 
 	//  缓存
 	m := cache.NewCache(cache.CacheOptions{
@@ -151,13 +145,13 @@ func (p *Deamon) run(s service.Service) {
 	actor.StartAutoScaler(autoCfg)
 	// 初始化用户认证
 
-	ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
-	if err != nil {
-		panic(err)
-	}
+	// ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	r := mux.NewRouter()
-	r.Use(mw.CORSMethodMiddleware(p.Profile.Server.Origins))
+	// r := mux.NewRouter()
+	// r.Use(mw.CORSMethodMiddleware(p.Profile.Server.Origins))
 
 	// muxServer := cmux.New(ln)
 	//Otherwise, we match it againts a websocket upgrade request.
@@ -166,23 +160,34 @@ func (p *Deamon) run(s service.Service) {
 	// httpListener := muxServer.Match(cmux.HTTP1Fast())
 	// rpcxListener := muxServer.Match(cmux.Any())
 
+	// go func() {
+	// 	api := v1.NewApi(ctx, storeInstance, p.Profile, logger, m, actor, wsLogic)
+	// 	router.Register(ctx, r, api)
+	// 	// 绑定路由到Http
+	// 	http.Handle("/", r)
+	// 	//初始化加入对应的
+	// 	// 启动 websocketr
+	// 	wsServer := connect.New(p.Context, p.Profile, logger, m, actor)
+	// 	wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance)
+	// 	// 注册服务器方法，暴露给客户端
+	// 	err := wsServer.RegisterName("v1", wsServerApi, "")
+	// 	if err != nil {
+	// 		logger.Error("wsServer.RegisterName error", zap.Error(err))
+	// 	}
+	// 	wsServer.Server(wsLogic, r)
+	// 	http.Serve(ln, nil)
+	// }()
+
 	go func() {
-		api := v1.NewApi(ctx, storeInstance, p.Profile, logger, m, actor, wsLogic)
-		router.Register(ctx, r, api)
-		// 绑定路由到Http
-		http.Handle("/", r)
-		//初始化加入对应的
-		// 启动 websocketr
-		wsServer := connect.New(p.Context, p.Profile, logger, m, actor)
-		wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance)
-		// 注册服务器方法，暴露给客户端
-		err := wsServer.RegisterName("v1", wsServerApi, "")
-		if err != nil {
-			logger.Error("wsServer.RegisterName error", zap.Error(err))
-		}
-		wsServer.Server(wsLogic, r)
-		http.Serve(ln, nil)
+		handler := NewHandler(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
+		wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
+		newConnect := sloth.ServerConn(wsLogic)
+		newConnect.RegisterRpc("v1", wsServerApi, "")
+		newConnect.Listen("tcp", p.Profile.Server.WsAddr,
+			wsocket.WithServerHandle(handler),
+		)
 	}()
+
 	go func() {
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance, m, actor)
 	}()

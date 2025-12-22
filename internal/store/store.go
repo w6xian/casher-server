@@ -1,12 +1,12 @@
 package store
 
 import (
-	"casher-server/connect"
 	"casher-server/internal/config"
 	"casher-server/internal/queue"
 	"context"
 
 	"github.com/louis-xie-programmer/go-local-cache/cache"
+	"github.com/w6xian/sloth"
 	"github.com/w6xian/sqlm"
 	"go.uber.org/zap"
 )
@@ -17,10 +17,10 @@ type Store struct {
 	lager     *zap.Logger
 	cache     *cache.Cache
 	actorPool *queue.ActorPool
-	WsLogic   *connect.WsLogic
+	WsLogic   *sloth.ClientRpc
 }
 
-func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool, wsLogic *connect.WsLogic) (*Store, error) {
+func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool, wsLogic *sloth.ClientRpc) (*Store, error) {
 	store := &Store{
 		profile:   opt,
 		driver:    driver,
