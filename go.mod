@@ -26,7 +26,7 @@ require (
 	github.com/smallnest/rpcx v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.1
-	github.com/w6xian/sloth v0.2.0
+	github.com/w6xian/sloth v0.2.2
 	github.com/w6xian/sqlm v0.0.24
 	go.elastic.co/ecszap v1.0.3
 	go.uber.org/zap v1.27.0
@@ -104,6 +104,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	github.com/w6xian/tlv v0.0.4 // indirect
 	github.com/xtaci/kcp-go v5.4.20+incompatible // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
