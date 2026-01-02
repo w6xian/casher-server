@@ -14,7 +14,10 @@ const (
 	// 管理员表
 	TABLE_COM_ADMIN = "com_admin"
 	// 商品表
-	TABLE_CLOUD_PUBLIC_PRODUCTS  = "cloud_public_products"
+	TABLE_CLOUD_PUBLIC_PRODUCTS = "cloud_public_products"
+	// 商品版本表
+	TABLE_CLOUD_PUBLIC_PRODUCTS_VERSIONS = "cloud_public_products_versions"
+
 	TABLE_CLOUD_PUBLIC_COMPANIES = "cloud_public_companies"
 	// 订单表
 	TABLE_MALL_SO       = "mall_so"

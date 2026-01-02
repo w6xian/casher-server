@@ -1,6 +1,7 @@
 package store
 
 import (
+	"casher-server/internal/errors"
 	"casher-server/internal/i18n"
 	"context"
 
@@ -40,6 +41,17 @@ func (t *Tracker) L(key string, def string, fields ...i18n.Field) string {
 		data[f.Key] = f.Value()
 	}
 	return i18n.TWithData(t.Language, key, def, data)
+}
+
+func (t *Tracker) Lang() language.Tag {
+	if t.Language == "" {
+		t.Language = language.Chinese.String()
+	}
+	return language.Make(t.Language)
+}
+
+func (t *Tracker) Error(k string, err string, fields ...i18n.Field) error {
+	return errors.New(t.L("msg_error", err, fields...))
 }
 
 func NewAnonimousTracker(ctx context.Context) *Tracker {

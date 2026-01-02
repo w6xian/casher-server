@@ -23,6 +23,7 @@ type Tracker struct {
 	ComId   int64  `json:"com_id"`
 	StoreId int64  `json:"store_id"`
 	ShopId  int64  `json:"shop_id"`
+	UserId  int64  `json:"user_id"`
 }
 
 // Error 错误日志

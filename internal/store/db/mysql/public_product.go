@@ -7,6 +7,26 @@ import (
 )
 
 // GetPublicProductBySn 根据商品编码查询商品
+func (db *DB) InsertPublicProduct(link sqlm.ITable, prd *store.ProductModel) (int64, error) {
+	id, err := link.Table(store.TABLE_CLOUD_PUBLIC_PRODUCTS).
+		Insert(prd.ToSqlMap())
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+// GetPublicProductBySn 根据商品编码查询商品
+func (db *DB) InsertPublicProductVersion(link sqlm.ITable, prd *store.ProductModel) (int64, error) {
+	id, err := link.Table(store.TABLE_CLOUD_PUBLIC_PRODUCTS_VERSIONS).
+		Insert(prd.ToSqlMap())
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+// GetPublicProductBySn 根据商品编码查询商品
 func (db *DB) GetPublicProductBySn(link sqlm.ITable, sn string) (*store.ProductModel, error) {
 	product := &store.ProductModel{}
 	authc, err := link.Table(store.TABLE_CLOUD_PUBLIC_PRODUCTS).Where("sn = '%s'", sn).Query()

@@ -5,8 +5,11 @@ import (
 	"casher-server/internal/store"
 	"casher-server/internal/utils"
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
+	"github.com/w6xian/tlv"
 	"go.uber.org/zap"
 )
 
@@ -15,6 +18,13 @@ type WsServerApi struct {
 	Lager    *zap.Logger
 	Store    *store.Store
 	Language string
+}
+
+type Header struct {
+	TrackId string `json:"track_id"`
+	AppId   string `json:"app_id"`
+	Lang    string `json:"lang"`
+	Auth    string `json:"auth"`
 }
 
 func NewWsServerApi(profile *config.Profile, lager *zap.Logger, store *store.Store, language string) *WsServerApi {
@@ -31,4 +41,49 @@ func (s *WsServerApi) Test(ctx context.Context, req string) (string, error) {
 
 func (s *WsServerApi) Pong(ctx context.Context, req string) (struct{}, error) {
 	return struct{}{}, nil
+}
+
+func (s *WsServerApi) ProductSn(ctx context.Context, header *Header, sn string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	ctx, close := s.Start(ctx)
+	defer close()
+
+	tracker, err := s.AnonimousTracker(ctx, header)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("ProductSn tracker:", tracker.TrackId)
+	resp, err := s.Store.GetPublicProductBySnV2(ctx, tracker, sn)
+	if err != nil {
+		return nil, err
+	}
+	return tlv.JsonEnpack(resp)
+}
+
+func (s *WsServerApi) ReplaceProduct(ctx context.Context, header *Header, req []byte) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	ctx, close := s.Start(ctx)
+	defer close()
+
+	tracker, err := s.AnonimousTracker(ctx, header)
+	if err != nil {
+		return nil, err
+	}
+	var reqBody *store.ProductModel
+	// req, err = tlv.JsonUnpack(req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	err = json.Unmarshal(req, &reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.Store.ReplacePublicProduct(ctx, tracker, reqBody)
+	if err != nil {
+		return nil, err
+	}
+	return tlv.JsonEnpack(resp)
 }

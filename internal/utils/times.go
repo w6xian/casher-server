@@ -3,7 +3,8 @@ package utils
 import "time"
 
 func UnixTime() int64 {
-	t := time.Now()
+	location, _ := time.LoadLocation("Asia/Shanghai")
+	t := time.Now().In(location)
 	return t.Unix()
 }
 

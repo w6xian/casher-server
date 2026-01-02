@@ -145,39 +145,6 @@ func (p *Deamon) run(s service.Service) {
 	actor.StartAutoScaler(autoCfg)
 	// 初始化用户认证
 
-	// ln, err := net.Listen("tcp", p.Profile.Server.WsAddr)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// r := mux.NewRouter()
-	// r.Use(mw.CORSMethodMiddleware(p.Profile.Server.Origins))
-
-	// muxServer := cmux.New(ln)
-	//Otherwise, we match it againts a websocket upgrade request.
-	// wsListener := muxServer.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
-	// wsl := m.Match(cmux.HTTP1HeaderField("Upgrade", "websocket"))
-	// httpListener := muxServer.Match(cmux.HTTP1Fast())
-	// rpcxListener := muxServer.Match(cmux.Any())
-
-	// go func() {
-	// 	api := v1.NewApi(ctx, storeInstance, p.Profile, logger, m, actor, wsLogic)
-	// 	router.Register(ctx, r, api)
-	// 	// 绑定路由到Http
-	// 	http.Handle("/", r)
-	// 	//初始化加入对应的
-	// 	// 启动 websocketr
-	// 	wsServer := connect.New(p.Context, p.Profile, logger, m, actor)
-	// 	wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance)
-	// 	// 注册服务器方法，暴露给客户端
-	// 	err := wsServer.RegisterName("v1", wsServerApi, "")
-	// 	if err != nil {
-	// 		logger.Error("wsServer.RegisterName error", zap.Error(err))
-	// 	}
-	// 	wsServer.Server(wsLogic, r)
-	// 	http.Serve(ln, nil)
-	// }()
-
 	go func() {
 		handler := NewHandler(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
 		wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
