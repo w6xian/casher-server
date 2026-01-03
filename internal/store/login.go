@@ -98,6 +98,33 @@ func (s *Store) GetAuthInfo(ctx context.Context, req *LoginRequest) (*AuthInfo, 
 	return authInfo.(*AuthInfo), nil
 }
 
+// GetAuthInfoUseMA 从数据库中获取登录信息()
+func (s *Store) GetAuthInfoUseMA(ctx context.Context, appId, apiKey, mchId, sign string, ts int64) (*AuthInfo, error) {
+	// 1 从缓存中获取
+	authInfo, err := s.cache.GetOrLoadCtx(ctx, mchId+apiKey, func(ctx context.Context) (any, time.Duration, error) {
+		link := s.GetLink(ctx)
+		auth, err := s.driver.GetAuthInfo(link, mchId, apiKey)
+		if err != nil {
+			return nil, 0, err
+		}
+		api := &APIReq{
+			AppId: appId,
+			Ts:    ts,
+			Sign:  sign,
+		}
+		// 校验返回签名
+		err = CheckSign(api, auth.MchId, auth.ApiKey, auth.ApiSecret)
+		if err != nil {
+			return nil, 0, err
+		}
+		return auth, time.Duration(def.GetNumber(s.profile.Cache.Expire, 5)) * time.Second, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return authInfo.(*AuthInfo), nil
+}
+
 func (s *Store) Login(ctx context.Context, req *LoginRequest, reply *LoginReply) error {
 	// 1 日志
 	log := lager.FromContext(ctx)

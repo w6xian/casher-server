@@ -2,8 +2,8 @@ package store
 
 import (
 	"casher-server/internal/lager"
+	"casher-server/internal/timex"
 	"context"
-	"time"
 )
 
 /*
@@ -93,6 +93,6 @@ func (s *Store) AsyncSuppliers(ctx context.Context, req *AsyncRequest, reply *As
 	reply.AppId = req.AppId
 	reply.Suppliers = res.Suppliers
 	reply.TotalNum = res.TotalNum
-	reply.LastTime = time.Now().Unix()
+	reply.LastTime = timex.UnixTime()
 	return nil
 }

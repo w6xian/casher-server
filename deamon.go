@@ -13,6 +13,7 @@ import (
 	"casher-server/internal/i18n"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
+	"casher-server/internal/timex"
 	"casher-server/internal/wsfuns"
 
 	"casher-server/internal/command"
@@ -66,6 +67,9 @@ func (p *Deamon) run(s service.Service) {
 	p.initConfig()
 	// 初始化 i18n
 	p.initLanguage()
+
+	// 初始化时间
+	timex.InitLocation(p.Profile.Timezone)
 
 	// 日志
 	optsLog := p.Profile.Logger

@@ -2,11 +2,11 @@ package store
 
 import (
 	"casher-server/internal/lager"
+	"casher-server/internal/timex"
 	"casher-server/internal/utils"
 	"casher-server/internal/utils/id"
 	"context"
 	"fmt"
-	"time"
 )
 
 type SuppCodeRequest struct {
@@ -113,7 +113,7 @@ func (s *Store) ReadProductSuppUseCode(ctx context.Context, req *SuppCodeRequest
 		AuthUserName: "",
 		ExpireTime:   0,
 		Status:       1,
-		Intime:       time.Now().Unix(),
+		Intime:       timex.UnixTime(),
 	})
 	if err != nil {
 		log.ErrorExit("ReadProductSuppUseCode Insert err", err)

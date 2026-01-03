@@ -9,6 +9,7 @@ import (
 
 	"casher-server/internal/auth"
 	"casher-server/internal/auth/jwt/ED25519"
+	"casher-server/internal/timex"
 	"casher-server/internal/utils/id"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -39,8 +40,8 @@ func EncodeToken(claims *auth.CasherClaims) (string, error) {
 	*/
 	payload["sub"] = "casher"
 	payload["token"] = id.GetUuid()
-	payload["iat"] = time.Now().Unix()
-	payload["exp"] = time.Now().Add(ExpireTime).Unix()
+	payload["iat"] = timex.UnixTime()
+	payload["exp"] = timex.Now().Add(ExpireTime).Unix()
 	payload["iss"] = Issuer
 	payload["casher_id"] = claims.CasherId
 	payload["app_id"] = claims.AppId

@@ -4,7 +4,6 @@ import (
 	"casher-server/internal/config"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db/mysql"
-	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -24,7 +23,7 @@ func NewDBDriver(profile *config.Profile) (store.Driver, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create db driver")
 	}
-	fmt.Println("NewDBDriver driver=", driver)
-	fmt.Println("NewDBDriver driver.Protocol=", profile.Store.Protocol)
+	// fmt.Println("NewDBDriver driver=", driver)
+	// fmt.Println("NewDBDriver driver.Protocol=", profile.Store.Protocol)
 	return driver, nil
 }

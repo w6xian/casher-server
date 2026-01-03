@@ -2,12 +2,12 @@ package store
 
 import (
 	"casher-server/internal/lager"
+	"casher-server/internal/timex"
 	"casher-server/pkg/checker"
 	"casher-server/pkg/mapv"
 	"context"
 	"fmt"
 	"slices"
-	"time"
 )
 
 /*
@@ -162,7 +162,7 @@ func (s *Store) AsyncProducts(ctx context.Context, req *AsyncRequest, reply *Asy
 	reply.AppId = req.AppId
 	reply.Products = res.Products
 	reply.TotalNum = res.TotalNum
-	reply.LastTime = time.Now().Unix()
+	reply.LastTime = timex.UnixTime()
 	return nil
 }
 
@@ -260,7 +260,7 @@ func (s *Store) AsyncProductsExtra(ctx context.Context, req *AsyncRequest, reply
 	reply.AppId = req.AppId
 	reply.Categories = res.Categories
 	reply.Brands = res.Brands
-	reply.LastTime = time.Now().Unix()
+	reply.LastTime = timex.UnixTime()
 	return nil
 }
 
@@ -272,7 +272,7 @@ type AsyncProductUpdateReply struct {
 	LastTime int64        `json:"last_time"`
 }
 
-// AsyncProductUpdate 同步单一商品更新信息
+// AsyncProductLite 同步单一商品更新信息
 func (s *Store) AsyncProductLite(ctx context.Context, req *IdRequest, reply *IdRequestProductReply) error {
 	// 1 日志
 	log := lager.FromContext(ctx)

@@ -6,13 +6,14 @@
 package tools
 
 import (
+	"casher-server/internal/timex"
 	"crypto/rand"
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
-	"github.com/bwmarrin/snowflake"
 	"io"
-	"time"
+
+	"github.com/bwmarrin/snowflake"
 )
 
 const SessionPrefix = "sess_"
@@ -51,5 +52,5 @@ func Sha1(s string) (str string) {
 }
 
 func GetNowDateTime() string {
-	return time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05")
+	return timex.Now().Format("2006-01-02 15:04:05")
 }

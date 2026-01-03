@@ -24,7 +24,8 @@ type Header struct {
 	TrackId string `json:"track_id"`
 	AppId   string `json:"app_id"`
 	Lang    string `json:"lang"`
-	Auth    string `json:"auth"`
+	Ts      int64  `json:"ts"`
+	Sign    string `json:"sign"`
 }
 
 func NewWsServerApi(profile *config.Profile, lager *zap.Logger, store *store.Store, language string) *WsServerApi {

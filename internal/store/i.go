@@ -2,10 +2,10 @@ package store
 
 import (
 	"casher-server/internal/jwt/secret"
+	"casher-server/internal/timex"
 	"encoding/base64"
 	"fmt"
 	"strings"
-	"time"
 )
 
 type IEncrypt interface {
@@ -89,7 +89,7 @@ func SetSign(req IEncrypt, cs ...string) error {
 	if len(cs) == 0 {
 		return fmt.Errorf("server setSign appId is empty")
 	}
-	ts := time.Now().Unix()
+	ts := timex.UnixTime()
 	// appId + ts 签名 RsaEncrypt
 	code := fmt.Sprintf("%s:%d", strings.Join(cs, ""), ts)
 	sign, err := RsaEncrypt([]byte(code), []byte(LOGIN_PUBLIC_KEY))
@@ -113,7 +113,7 @@ func CheckSign(req IDecrypt, cs ...string) error {
 		return fmt.Errorf("ts is empty")
 	}
 	// ts 校验是否过期（30秒）
-	if ts < time.Now().Unix()-30 {
+	if ts < timex.Now().Unix()-30 {
 		return fmt.Errorf("sign expired")
 	}
 	// 校验 sign 是否为空

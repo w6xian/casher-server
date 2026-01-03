@@ -2,8 +2,8 @@ package store
 
 import (
 	"casher-server/internal/lager"
+	"casher-server/internal/timex"
 	"context"
-	"time"
 )
 
 /*
@@ -90,7 +90,7 @@ func (s *Store) AsyncUsers(ctx context.Context, req *AsyncRequest, reply *AsyncU
 	reply.AppId = req.AppId
 	reply.Users = res.Users
 	reply.TotalNum = res.TotalNum
-	reply.LastTime = time.Now().Unix()
+	reply.LastTime = timex.UnixTime()
 	return nil
 }
 
@@ -194,6 +194,6 @@ func (s *Store) AsyncUsersExtra(ctx context.Context, req *AsyncRequest, reply *A
 	reply.AppId = req.AppId
 	reply.Levels = res.Levels
 	reply.Tags = res.Tags
-	reply.LastTime = time.Now().Unix()
+	reply.LastTime = timex.UnixTime()
 	return nil
 }

@@ -133,6 +133,7 @@ type Profile struct {
 	log        StdLog
 	Connect    ConnectConfig `mapstructure:"connect"`
 	Cache      CacheConfig   `mapstructure:"cache"`
+	Timezone   string        `mapstructure:"timezone"`
 }
 
 func (opts *Profile) SetLogger(log StdLog) *Profile {
@@ -154,6 +155,7 @@ func NewProfile() *Profile {
 			ProxyId:    0,
 			UserId:     0,
 			EmployeeId: 0,
+			Timezone:   "Asia/Shanghai",
 			Machine: Machine{
 				Id:   1,
 				Code: "SST-1",
