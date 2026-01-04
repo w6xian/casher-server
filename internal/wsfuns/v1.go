@@ -47,3 +47,15 @@ func (v1 *WsServerApi) AnonimousTracker(ctx context.Context, header *Header) (*l
 		ShopId:  0,
 	}, nil
 }
+
+func (v1 *WsServerApi) TrackerFromHeader(ctx context.Context, header map[string]string) (*lager.Tracker, error) {
+	return &lager.Tracker{
+		AppId:   header["app_id"],
+		TrackId: header["track_id"],
+		Lang:    header["lang"],
+		ProxyId: 0,
+		ComId:   2,
+		StoreId: 0,
+		ShopId:  0,
+	}, nil
+}

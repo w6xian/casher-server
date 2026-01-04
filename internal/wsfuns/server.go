@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/w6xian/sloth"
+	"github.com/w6xian/sloth/message"
 	"github.com/w6xian/tlv"
 	"go.uber.org/zap"
 )
@@ -44,17 +46,25 @@ func (s *WsServerApi) Pong(ctx context.Context, req string) (struct{}, error) {
 	return struct{}{}, nil
 }
 
-func (s *WsServerApi) ProductSn(ctx context.Context, header *Header, sn string) ([]byte, error) {
+func (s *WsServerApi) ProductSn(ctx context.Context, sn string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	ctx, close := s.Start(ctx)
 	defer close()
 
-	tracker, err := s.AnonimousTracker(ctx, header)
+	header := ctx.Value(sloth.HeaderKey).(message.Header)
+	if header == nil {
+		return nil, fmt.Errorf("header is nil")
+	}
+	// 校验 sign
+	err := s.checkSign(header)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("ProductSn tracker:", tracker.TrackId)
+	tracker, err := s.TrackerFromHeader(ctx, header)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := s.Store.GetPublicProductBySnV2(ctx, tracker, sn)
 	if err != nil {
 		return nil, err

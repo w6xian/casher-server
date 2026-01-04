@@ -310,8 +310,8 @@ github.com/vmihailenco/msgpack/v5 v5.4.1 h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IU
 github.com/vmihailenco/msgpack/v5 v5.4.1/go.mod h1:GaZTsDaehaPpQVyxrf5mtQlH+pc21PIudVV/E3rRQok=
 github.com/vmihailenco/tagparser/v2 v2.0.0 h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=
 github.com/vmihailenco/tagparser/v2 v2.0.0/go.mod h1:Wri+At7QHww0WTrCBeu4J6bNtoV6mEfg5OIWRZA9qds=
-github.com/w6xian/sloth v0.2.2 h1:3ZDTqaXy1XrEmJMQOG9d2QC1J+LinmHbdSQGFJvVdRs=
-github.com/w6xian/sloth v0.2.2/go.mod h1:cXcsP4JaIdmgmCVmQyb/DUXYOugnJDSgVh10n0DxLGI=
+github.com/w6xian/sloth v0.2.3 h1:dpVP4yP5UdNTVauIRf8vOkeJQftw5GcLY7+Kg39VDl8=
+github.com/w6xian/sloth v0.2.3/go.mod h1:cXcsP4JaIdmgmCVmQyb/DUXYOugnJDSgVh10n0DxLGI=
 github.com/w6xian/sqlm v0.0.24 h1:mBhW7eI4j83dqpDyZWIR0At7FRGGduCX9eGeq52aL/Y=
 github.com/w6xian/sqlm v0.0.24/go.mod h1:RBOWkqy+RqWgRHUcX0BD9EadqZWqGEvBQb4NAcVIqFA=
 github.com/w6xian/tlv v0.0.4 h1:6XFfSPkhyppCmRWn73/YRHoUpRRyfPiK6sSdde3zAx8=
