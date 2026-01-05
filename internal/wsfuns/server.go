@@ -72,13 +72,22 @@ func (s *WsServerApi) ProductSn(ctx context.Context, sn string) ([]byte, error) 
 	return tlv.JsonEnpack(resp)
 }
 
-func (s *WsServerApi) ReplaceProduct(ctx context.Context, header *Header, req []byte) ([]byte, error) {
+func (s *WsServerApi) ReplaceProduct(ctx context.Context, req []byte) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	ctx, close := s.Start(ctx)
 	defer close()
+	header := ctx.Value(sloth.HeaderKey).(message.Header)
+	if header == nil {
+		return nil, fmt.Errorf("header is nil")
+	}
+	// 校验 sign
+	err := s.checkSign(header)
+	if err != nil {
+		return nil, err
+	}
 
-	tracker, err := s.AnonimousTracker(ctx, header)
+	tracker, err := s.TrackerFromHeader(ctx, header)
 	if err != nil {
 		return nil, err
 	}

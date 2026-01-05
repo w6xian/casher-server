@@ -77,6 +77,11 @@ func (s *Store) ReplacePublicProduct(ctx context.Context, tracker *lager.Tracker
 	link := s.GetLink(ctx)
 	// 2.1 数据驱动
 	db := s.GetDriver()
+	if prd.PackName == "" {
+		if prd.PkAmount == 1 {
+			prd.PackName = prd.SpecName
+		}
+	}
 	productModel, err := db.GetPublicProductBySn(link, prd.Sn)
 	if err == nil {
 		// 有记录的情况下q，更新版本
