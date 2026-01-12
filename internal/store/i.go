@@ -132,3 +132,70 @@ func CheckSign(req IDecrypt, cs ...string) error {
 	}
 	return nil
 }
+
+// 实现IDecrypt
+func CheckHeaderSign(sign, norm, appId, appKey, appSec string, ts int64) error {
+	// 校验 norm 是否为空
+	if norm == "" {
+		return fmt.Errorf("norm is empty")
+	}
+
+	// 校验 ts 是否为空
+	if ts == 0 {
+		return fmt.Errorf("ts is empty")
+	}
+	// ts 校验是否过期（30秒）
+	if ts < timex.Now().Unix()-30 {
+		return fmt.Errorf("sign expired")
+	}
+
+	// 校验 sign 是否为空
+	if sign == "" {
+		return fmt.Errorf("sign is empty")
+	}
+	// sign 解密 RsaDecrypt
+	code, err := RsaDecrypt([]byte(sign), []byte(LOGIN_PRIVATE_KEY))
+	if err != nil {
+		return err
+	}
+	// 校验 appId + ts 是否一致
+	expectedCode := fmt.Sprintf("%s:%s:%s:%s:%d", norm, appId, appKey, appSec, ts)
+
+	if string(code) != expectedCode {
+		return fmt.Errorf("invalid sign, expectedCode = %s, code = %s", expectedCode, string(code))
+	}
+	return nil
+}
+
+// 实现IEncrypt
+// GetHeaderSign 获取请求头签名
+// @return sign 签名
+// @return norm 归一化字符串
+// @return ts 时间戳
+// @return err 错误信息
+func GetHeaderSign(norm, appId, appKey, appSec string) ([]byte, string, int64, error) {
+	// 校验 appId 是否为空
+	if appId == "" {
+		return nil, "", 0, fmt.Errorf("appId is empty")
+	}
+	// 校验 appKey 是否为空
+	if appKey == "" {
+		return nil, "", 0, fmt.Errorf("appKey is empty")
+	}
+	// 校验 appSec 是否为空
+	if appSec == "" {
+		return nil, "", 0, fmt.Errorf("appSec is empty")
+	}
+	// 校验 norm 是否为空
+	if norm == "" {
+		return nil, "", 0, fmt.Errorf("norm is empty")
+	}
+	ts := timex.UnixTime()
+	// appId + ts 签名 RsaEncrypt
+	code := fmt.Sprintf("%s:%s:%s:%s:%d", norm, appId, appKey, appSec, ts)
+	sign, err := RsaEncrypt([]byte(code), []byte(LOGIN_PUBLIC_KEY))
+	if err != nil {
+		return nil, "", 0, err
+	}
+	return sign, norm, ts, nil
+}

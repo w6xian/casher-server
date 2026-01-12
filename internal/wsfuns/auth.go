@@ -1,23 +1,32 @@
 package wsfuns
 
 import (
+	"casher-server/internal/utils"
+	"casher-server/internal/utils/id"
 	"context"
 	"fmt"
 	"time"
 
 	"github.com/w6xian/sloth"
 	"github.com/w6xian/sloth/bucket"
+	"github.com/w6xian/sloth/message"
 	"github.com/w6xian/sloth/nrpc"
 	"github.com/w6xian/tlv"
 )
 
-func (s *WsServerApi) Login(ctx context.Context, header *Header, mchId, apiKey string) ([]byte, error) {
+func (s *WsServerApi) Login(ctx context.Context, req string) ([]byte, error) {
+	header := ctx.Value(sloth.HeaderKey).(message.Header)
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	ctx, close := s.Start(ctx)
 	defer close()
-
-	authInfo, err := s.Store.GetAuthInfoUseMA(ctx, header.AppId, apiKey, mchId, header.Sign, header.Ts)
+	appId := header.Get("app_id")
+	sign := header.Get("sign")
+	ts := header.Get("ts")
+	norm := header.Get("norm")
+	apiKey := header.Get("api_key")
+	mchId := header.Get("mch_id")
+	authInfo, err := s.Store.GetAuthInfoUseMA(ctx, appId, apiKey, mchId, sign, norm, utils.GetInt64(ts))
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +43,7 @@ func (s *WsServerApi) Login(ctx context.Context, header *Header, mchId, apiKey s
 	auth := nrpc.AuthInfo{
 		UserId: authInfo.UserId,
 		RoomId: authInfo.ProxyId,
-		Token:  authInfo.ApiKey,
+		Token:  id.ShortID(),
 	}
 	lerr := svr.Bucket(auth.UserId).Put(auth.UserId, auth.RoomId, auth.Token, ch)
 

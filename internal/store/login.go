@@ -86,7 +86,7 @@ func (s *Store) GetAuthInfo(ctx context.Context, req *LoginRequest) (*AuthInfo, 
 			return nil, 0, err
 		}
 		// 校验返回签名
-		err = CheckSign(req, auth.MchId, auth.ApiKey, auth.ApiSecret)
+		err = CheckSign(req, auth.AppId)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -99,7 +99,7 @@ func (s *Store) GetAuthInfo(ctx context.Context, req *LoginRequest) (*AuthInfo, 
 }
 
 // GetAuthInfoUseMA 从数据库中获取登录信息()
-func (s *Store) GetAuthInfoUseMA(ctx context.Context, appId, apiKey, mchId, sign string, ts int64) (*AuthInfo, error) {
+func (s *Store) GetAuthInfoUseMA(ctx context.Context, appId, apiKey, mchId, sign, norm string, ts int64) (*AuthInfo, error) {
 	// 1 从缓存中获取
 	authInfo, err := s.cache.GetOrLoadCtx(ctx, mchId+apiKey, func(ctx context.Context) (any, time.Duration, error) {
 		link := s.GetLink(ctx)
@@ -107,13 +107,9 @@ func (s *Store) GetAuthInfoUseMA(ctx context.Context, appId, apiKey, mchId, sign
 		if err != nil {
 			return nil, 0, err
 		}
-		api := &APIReq{
-			AppId: appId,
-			Ts:    ts,
-			Sign:  sign,
-		}
+
 		// 校验返回签名
-		err = CheckSign(api, auth.MchId, auth.ApiKey, auth.ApiSecret)
+		err = CheckHeaderSign(sign, norm, auth.AppId, auth.ApiKey, auth.ApiSecret, ts)
 		if err != nil {
 			return nil, 0, err
 		}

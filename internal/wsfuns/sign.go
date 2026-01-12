@@ -3,38 +3,46 @@ package wsfuns
 import (
 	"casher-server/proto"
 	"fmt"
+	"strings"
 
 	"github.com/w6xian/sloth/message"
 )
 
 func (s *WsServerApi) checkSign(header message.Header) error {
-
+	appId := header.Get("app_id")
+	sign := header.Get("sign")
+	ts := header.Get("ts")
+	norm := header.Get("norm")
+	apiKey := header.Get("api_key")
 	// 校验 appId 是否为空
-	if header.Get("app_id") == "" {
+	if appId == "" {
 		return fmt.Errorf("server setSign appId is empty")
 	}
 	// ts
-	if header.Get("ts") == "" {
+	if ts == "" {
 		return fmt.Errorf("server setSign ts is empty")
 	}
 	// norm
-	if header.Get("norm") == "" {
+	if norm == "" {
 		return fmt.Errorf("server setSign norm is empty")
 	}
 	// sign
-	if header.Get("sign") == "" {
+	if sign == "" {
 		return fmt.Errorf("server setSign sign is empty")
 	}
 
 	// sign 解密 RsaDecrypt
-	code, err := proto.RsaDecrypt([]byte(header.Get("sign")), []byte(proto.LOGIN_PRIVATE_KEY))
+	code, err := proto.RsaDecrypt([]byte(sign), []byte(proto.LOGIN_PRIVATE_KEY))
 	if err != nil {
 		return err
 	}
 	// 校验 appId + ts 是否一致
-	expectedCode := fmt.Sprintf("%s:%s:%s", header.Get("norm"), header.Get("app_id"), header.Get("ts"))
-	if string(code) != expectedCode {
-		return fmt.Errorf("invalid sign")
+	prev := fmt.Sprintf("%s:%s:%s", norm, appId, apiKey)
+	next := fmt.Sprintf(":%s", ts)
+
+	if !strings.HasPrefix(string(code), prev) || !strings.HasSuffix(string(code), next) {
+		return fmt.Errorf("invalid sign, expectedCode = %s:%s, code = %s", prev, next, string(code))
 	}
+	fmt.Println("code = ", string(code), prev, next)
 	return nil
 }

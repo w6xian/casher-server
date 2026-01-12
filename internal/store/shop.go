@@ -18,6 +18,7 @@ type Req struct {
 	Sign    string         `json:"sign"`
 	Tracker *lager.Tracker `json:"-"`
 	Action  int64          `json:"type"` //0同步列表 1 商品更新 2 商品删除
+	Norm    string         `json:"norm"`
 }
 
 func (req *Req) GetTrackInfo(ctx context.Context) (string, string, string) {
