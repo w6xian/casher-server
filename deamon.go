@@ -2,6 +2,7 @@ package main
 
 import (
 	"casher-server/api/rpc"
+	"casher-server/api/wrpc"
 	"context"
 	"flag"
 	"fmt"
@@ -11,10 +12,10 @@ import (
 
 	"casher-server/internal/config"
 	"casher-server/internal/i18n"
+	"casher-server/internal/server"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
 	"casher-server/internal/timex"
-	"casher-server/internal/wsfuns"
 
 	"casher-server/internal/command"
 
@@ -24,7 +25,7 @@ import (
 	"casher-server/internal/queue"
 
 	"github.com/w6xian/sloth"
-	"github.com/w6xian/sloth/nrpc/wsocket"
+	"github.com/w6xian/sloth/message"
 	"go.elastic.co/ecszap"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -32,19 +33,6 @@ import (
 )
 
 const (
-	// Time allowed to write a message to the peer.
-	// writeWait = 10 * time.Second
-
-	// // Maximum message size allowed from peer.
-	// maxMessageSize = 8192
-
-	// // Time allowed to read the next pong message from the peer.
-	// pongWait = 60 * time.Second
-
-	// // Send pings to peer with this period. Must be less than pongWait.
-	// pingPeriod = (pongWait * 9) / 10
-
-	// Time to wait before force close on connection.
 	closeGracePeriod = 10 * time.Second
 )
 
@@ -112,7 +100,7 @@ func (p *Deamon) run(s service.Service) {
 	if err != nil {
 		panic(err)
 	}
-	wsLogic := sloth.DefaultServer()
+	sLogic := sloth.DefaultServer()
 
 	//  缓存
 	m := cache.NewCache(cache.CacheOptions{
@@ -128,7 +116,15 @@ func (p *Deamon) run(s service.Service) {
 	// 创建 Actor 池
 	actor := queue.NewPool(sys, "testpool", 2, 6)
 
-	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, actor, wsLogic)
+	wsProxy := &wrpc.WSProxy{
+		Server: sLogic,
+		ServerHeader: message.Header{
+			"server": "casher",
+		},
+		Driver: dbDriver,
+	}
+
+	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, actor, wsProxy)
 	if err != nil {
 		panic(err)
 	}
@@ -149,24 +145,29 @@ func (p *Deamon) run(s service.Service) {
 	actor.StartAutoScaler(autoCfg)
 	// 初始化用户认证
 
-	go func() {
-		handler := NewHandler(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
-		wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
-		newConnect := sloth.ServerConn(wsLogic)
-		newConnect.RegisterRpc("v1", wsServerApi, "")
-		newConnect.Listen("tcp", p.Profile.Server.WsAddr,
-			wsocket.WithServerHandle(handler),
-		)
-	}()
+	svr, sErr := server.NewServer(ctx, p.Profile, storeInstance, logger, m, actor, wsProxy)
+	if sErr != nil {
+		panic(sErr)
+	}
+
+	// go func() {
+	// 	handler := NewHandler(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
+	// 	wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
+	// 	newConnect := sloth.ServerConn(wsLogic)
+	// 	newConnect.RegisterRpc("v1", wsServerApi, "")
+	// 	newConnect.Listen("tcp", p.Profile.Server.WsAddr,
+	// 		wsocket.WithServerHandle(handler),
+	// 	)
+	// }()
 
 	go func() {
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance, m, actor)
 	}()
-	// go func() {
-	// 	if err := muxServer.Serve(); !strings.Contains(err.Error(), "use of closed network connection") {
-	// 		panic(err)
-	// 	}
-	// }()
+	// _ = svr
+	if err := svr.Start(ctx, queueCmd); err != nil {
+		fmt.Println("failed to start server", "error", err)
+		panic(err)
+	}
 
 }
 

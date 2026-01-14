@@ -20,6 +20,7 @@ require (
 	github.com/louis-xie-programmer/go-local-cache v0.0.0-20251025073427-afc539ae1c71
 	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/nicksnyder/go-i18n/v2 v2.6.0
+	github.com/nsqio/go-nsq v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/praserx/ipconv v1.2.2
 	github.com/prometheus/client_golang v1.23.2

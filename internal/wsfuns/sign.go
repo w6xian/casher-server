@@ -16,7 +16,7 @@ func (s *WsServerApi) checkSign(header message.Header) error {
 	apiKey := header.Get("api_key")
 	// 校验 appId 是否为空
 	if appId == "" {
-		return fmt.Errorf("server setSign appId is empty")
+		return fmt.Errorf("server checkSign appId is empty")
 	}
 	// ts
 	if ts == "" {

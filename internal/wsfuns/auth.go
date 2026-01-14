@@ -1,6 +1,7 @@
 package wsfuns
 
 import (
+	"casher-server/internal/store"
 	"casher-server/internal/utils"
 	"casher-server/internal/utils/id"
 	"context"
@@ -28,7 +29,11 @@ func (s *WsServerApi) Login(ctx context.Context, req string) ([]byte, error) {
 	mchId := header.Get("mch_id")
 	authInfo, err := s.Store.GetAuthInfoUseMA(ctx, appId, apiKey, mchId, sign, norm, utils.GetInt64(ts))
 	if err != nil {
-		return nil, err
+		authInfo = &store.AuthInfo{
+			UserId:  0,
+			ProxyId: 0,
+			ShopId:  0,
+		}
 	}
 
 	ch, ok := ctx.Value(sloth.ChannelKey).(bucket.IChannel)
@@ -42,7 +47,7 @@ func (s *WsServerApi) Login(ctx context.Context, req string) ([]byte, error) {
 	//根据data登录 解析出userId,roomId,token
 	auth := nrpc.AuthInfo{
 		UserId: authInfo.UserId,
-		RoomId: authInfo.ProxyId,
+		RoomId: authInfo.ShopId,
 		Token:  id.ShortID(),
 	}
 	lerr := svr.Bucket(auth.UserId).Put(auth.UserId, auth.RoomId, auth.Token, ch)

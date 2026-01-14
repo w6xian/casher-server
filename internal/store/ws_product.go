@@ -5,6 +5,7 @@ import (
 	"casher-server/internal/utils"
 	"casher-server/internal/utils/def"
 	"context"
+	"fmt"
 )
 
 type CallBackReq struct {
@@ -37,8 +38,8 @@ func (s *Store) ProductInfo(ctx context.Context, req *CallReq) (*CallResp, error
 	if err != nil {
 		return nil, err
 	}
-
-	resp, err := s.WsLogic.Call(ctx, req.UserId,
+	fmt.Println("-------------")
+	resp, err := s.WsProxy.CallClient(ctx, req.UserId,
 		def.GetString(req.Method, "shop.ProductInfo"),
 		CallBackReq{
 			AppId: shop.AppId,
@@ -74,7 +75,7 @@ func (s *Store) ProductsInfo(ctx context.Context, req *CallReq) (*CallResp, erro
 		return nil, err
 	}
 
-	resp, err := s.WsLogic.Call(ctx, req.UserId,
+	resp, err := s.WsProxy.CallClient(ctx, req.UserId,
 		def.GetString(req.Method, "shop.ProductsInfo"),
 		CallBackReq{
 			AppId: shop.AppId,

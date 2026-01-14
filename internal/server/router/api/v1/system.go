@@ -26,10 +26,10 @@ func (v *Api) SystemInfo(w http.ResponseWriter, req *http.Request) ([]byte, erro
 		return nil, muxhttp.NewArgsErr(aErr)
 	}
 	fmt.Println(string(utils.Serialize(reqData)))
-	err := store.CheckSign(reqData, reqData.AppId)
-	if err != nil {
-		return nil, muxhttp.NewArgsErr(err)
-	}
+	// err := store.CheckSign(reqData, reqData.AppId)
+	// if err != nil {
+	// 	return nil, muxhttp.NewArgsErr(err)
+	// }
 	// // 校验参数
 	tracker, tErr := v.GetTracker(req, true)
 	if tErr != nil {

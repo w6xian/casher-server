@@ -170,7 +170,7 @@ func NewProfile() *Profile {
 			Server: &Server{
 				RpcAddr:         "0.0.0.0:8965",
 				WsAddr:          "0.0.0.0:8966",
-				Address:         "0.0.0.0:8888",
+				Address:         "0.0.0.0:8967",
 				Network:         "tcp",
 				Origins:         []string{"*"},
 				WriteWait:       10 * time.Second,

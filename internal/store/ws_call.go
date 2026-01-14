@@ -31,7 +31,7 @@ func (s *Store) Call(ctx context.Context, req *CallReq) (*CallResp, error) {
 		return nil, err
 	}
 
-	resp, err := s.WsLogic.Call(ctx, req.UserId, "shop.Test", map[string]string{
+	resp, err := s.WsProxy.CallClient(ctx, req.UserId, "casher.Test", map[string]string{
 		"name":      "test",
 		"app_id":    req.AppId,
 		"shop_name": shop.Name,
@@ -53,7 +53,7 @@ func (s *Store) ProdctInfo(ctx context.Context, req *CallReq) (*CallResp, error)
 		return nil, err
 	}
 
-	resp, err := s.WsLogic.Call(ctx, req.UserId, "shop.ProdctInfo", map[string]string{
+	resp, err := s.WsProxy.CallClient(ctx, req.UserId, "casher.ProdctInfo", map[string]string{
 		"name":      "ProdctInfo",
 		"app_id":    req.AppId,
 		"shop_name": shop.Name,

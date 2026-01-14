@@ -39,6 +39,7 @@ func (v *Api) ProductInfo(w http.ResponseWriter, req *http.Request) ([]byte, err
 		reqData.UserId = 10
 		reqData.Data = `{"union_id":"MDraSyLNC6faYf71eGT6sG"}`
 	}
+	fmt.Println("===")
 	resp, err := v.Store.ProductInfo(ctx, reqData)
 	if err != nil {
 		return nil, muxhttp.NewErr(err)

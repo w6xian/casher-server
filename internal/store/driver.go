@@ -66,4 +66,5 @@ type Driver interface {
 
 	// 授权信息
 	GetAuthInfo(link sqlm.ITable, mchId, apiKey string) (*AuthInfo, error)
+	GetAuthInfoByIds(link sqlm.ITable, shopId, userId int64) (*AuthInfo, error)
 }
