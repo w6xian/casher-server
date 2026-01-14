@@ -69,7 +69,7 @@ func (p *ActorPool) Resize(n int) {
 
 // 向池中的 worker 轮询发送消息
 // internal/command/queue.go
-func (p *ActorPool) Tell(msg Message) {
+func (p *ActorPool) Tell(msg []byte) {
 	p.M.Lock()
 	if len(p.Workers) == 0 {
 		p.M.Unlock()

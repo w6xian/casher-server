@@ -2,7 +2,7 @@ package rpc
 
 import (
 	"casher-server/internal/config"
-	"casher-server/internal/queue"
+	"casher-server/internal/message"
 	"casher-server/internal/store"
 
 	"github.com/louis-xie-programmer/go-local-cache/cache"
@@ -13,7 +13,7 @@ type Shop struct {
 	Profile  *config.Profile
 	Lager    *zap.Logger
 	Store    *store.Store
-	Actor    *queue.ActorPool
+	Actor    message.IMessager
 	Language string
 	Cache    *cache.Cache
 }

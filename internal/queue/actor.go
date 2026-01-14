@@ -22,7 +22,7 @@ const (
 // MaxRestarts: 最大重启次数
 // Window: 重启计数窗口
 type Props struct {
-	ActorFunc   func(ctx Context, msg Message)
+	ActorFunc   func(ctx Context, msg []byte)
 	Mailbox     int
 	Strategy    RestartStrategy
 	MaxRestarts int
@@ -32,12 +32,12 @@ type Props struct {
 // Actor 引用，包含路径、消息通道、关闭信号
 type ActorRef struct {
 	path string
-	send chan<- Message
+	send chan<- []byte
 	done <-chan struct{}
 }
 
 // 向 Actor 发送消息
-func (r ActorRef) Tell(msg Message) {
+func (r ActorRef) Tell(msg []byte) {
 	select {
 	case <-r.done:
 		fmt.Printf("[WARN] actor %s 正在关闭，丢弃消息 %#v\n", r.path, msg)

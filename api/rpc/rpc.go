@@ -7,7 +7,7 @@ package rpc
 
 import (
 	"casher-server/internal/config"
-	"casher-server/internal/queue"
+	"casher-server/internal/message"
 	"casher-server/internal/store"
 	"context"
 	"sync"
@@ -19,7 +19,7 @@ import (
 
 var once sync.Once
 
-func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store, m *cache.Cache, actor *queue.ActorPool) {
+func InitLogicRpcServer(ctx context.Context, profile *config.Profile, logger *zap.Logger, store *store.Store, m *cache.Cache, actor message.IMessager) {
 
 	once.Do(func() {
 		shop := new(Shop)

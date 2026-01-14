@@ -26,7 +26,7 @@ type ActorSystem struct {
 type Child struct {
 	Name     string
 	Props    Props
-	Mailbox  chan Message
+	Mailbox  chan []byte
 	Ref      ActorRef
 	Stop     chan struct{}
 	Closing  chan struct{}
@@ -59,7 +59,7 @@ func (s *ActorSystem) spawnChild(name string, props Props, parent *ActorRef) Act
 	if props.Window == 0 {
 		props.Window = 5 * time.Second // 默认重启窗口
 	}
-	c := &Child{Name: name, Props: props, Mailbox: make(chan Message, props.Mailbox), Stop: make(chan struct{}), Closing: make(chan struct{})}
+	c := &Child{Name: name, Props: props, Mailbox: make(chan []byte, props.Mailbox), Stop: make(chan struct{}), Closing: make(chan struct{})}
 	c.Ref = ActorRef{path: name, send: c.Mailbox, done: c.Closing}
 
 	// 加入系统管理

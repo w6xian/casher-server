@@ -3,7 +3,7 @@ package store
 import (
 	"casher-server/api/wrpc"
 	"casher-server/internal/config"
-	"casher-server/internal/queue"
+	"casher-server/internal/message"
 	"context"
 
 	"github.com/louis-xie-programmer/go-local-cache/cache"
@@ -12,22 +12,22 @@ import (
 )
 
 type Store struct {
-	profile   *config.Profile
-	driver    Driver
-	lager     *zap.Logger
-	cache     *cache.Cache
-	actorPool *queue.ActorPool
-	WsProxy   *wrpc.WSProxy
+	profile *config.Profile
+	driver  Driver
+	lager   *zap.Logger
+	cache   *cache.Cache
+	actor   message.IMessager
+	WsProxy *wrpc.WSProxy
 }
 
-func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool, wsProxy *wrpc.WSProxy) (*Store, error) {
+func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool message.IMessager, wsProxy *wrpc.WSProxy) (*Store, error) {
 	store := &Store{
-		profile:   opt,
-		driver:    driver,
-		lager:     lager,
-		cache:     cache,
-		actorPool: actorPool,
-		WsProxy:   wsProxy,
+		profile: opt,
+		driver:  driver,
+		lager:   lager,
+		cache:   cache,
+		actor:   actorPool,
+		WsProxy: wsProxy,
 	}
 	return store, nil
 }

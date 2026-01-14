@@ -3,8 +3,8 @@ package v1
 import (
 	"casher-server/api/wrpc"
 	"casher-server/internal/config"
+	"casher-server/internal/message"
 	"casher-server/internal/muxhttp"
-	"casher-server/internal/queue"
 	"casher-server/internal/store"
 	"casher-server/internal/utils/def"
 	"casher-server/internal/utils/id"
@@ -22,12 +22,12 @@ type Api struct {
 	Profile *config.Profile
 	Lager   *zap.Logger
 	Cache   *cache.Cache
-	Actor   *queue.ActorPool
+	Actor   message.IMessager
 	WsProxy *wrpc.WSProxy
 	Store   *store.Store
 }
 
-func NewApi(ctx context.Context, storeInstance *store.Store, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor *queue.ActorPool, wsProxy *wrpc.WSProxy) *Api {
+func NewApi(ctx context.Context, storeInstance *store.Store, profile *config.Profile, lager *zap.Logger, cache *cache.Cache, actor message.IMessager, wsProxy *wrpc.WSProxy) *Api {
 	return &Api{
 		Context: ctx,
 		Profile: profile,
@@ -60,7 +60,7 @@ func (v *Api) Get(key string, loader func(context.Context) (interface{}, time.Du
 	return v.Cache.GetOrLoadCtx(context.Background(), key, loader)
 }
 
-func (v *Api) Tell(msg queue.Message) {
+func (v *Api) Tell(msg []byte) {
 	v.Actor.Tell(msg)
 }
 

@@ -12,6 +12,7 @@ import (
 
 	"casher-server/internal/config"
 	"casher-server/internal/i18n"
+	"casher-server/internal/kueue"
 	"casher-server/internal/server"
 	"casher-server/internal/store"
 	"casher-server/internal/store/db"
@@ -21,8 +22,6 @@ import (
 
 	"github.com/kardianos/service"
 	"github.com/louis-xie-programmer/go-local-cache/cache"
-
-	"casher-server/internal/queue"
 
 	"github.com/w6xian/sloth"
 	"github.com/w6xian/sloth/message"
@@ -111,10 +110,8 @@ func (p *Deamon) run(s service.Service) {
 		TotalMaxBytes: 1 << 20,
 	})
 
-	// 队列
-	sys := queue.NewSystem()
 	// 创建 Actor 池
-	actor := queue.NewPool(sys, "testpool", 2, 6)
+	actor := kueue.NewQueue("testpool", "127.0.0.1:4161")
 
 	wsProxy := &wrpc.WSProxy{
 		Server: sLogic,
@@ -132,17 +129,8 @@ func (p *Deamon) run(s service.Service) {
 		panic(err)
 	}
 	queueCmd := command.NewQueueCommand(ctx, p.Profile, logger, m)
-	// 队列自动扩缩容配置
-	workerProps := queue.Props{
-		ActorFunc:   queueCmd.ActorFunc,
-		Mailbox:     16,
-		Strategy:    queue.RestartOnFailure,
-		MaxRestarts: 3,
-		Window:      5 * time.Second,
-	}
-	actor.SetProps(workerProps)
-	autoCfg := queue.AutoScalerConfig{Interval: 500 * time.Millisecond, HighThreshold: 6, LowThreshold: 2, ScaleUpStep: 2, ScaleDownStep: 1, Cooldown: 2 * time.Second}
-	actor.StartAutoScaler(autoCfg)
+	actor.Handler(queueCmd)
+
 	// 初始化用户认证
 
 	svr, sErr := server.NewServer(ctx, p.Profile, storeInstance, logger, m, actor, wsProxy)

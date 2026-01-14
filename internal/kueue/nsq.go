@@ -36,3 +36,7 @@ func (k *Kueue) Handler(handler nsq.Handler) error {
 	k.handler = handler
 	return nil
 }
+
+func (k *Kueue) Tell(msg []byte) error {
+	return nil
+}

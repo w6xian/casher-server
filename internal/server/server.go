@@ -4,8 +4,8 @@ import (
 	"casher-server/api/wrpc"
 	"casher-server/internal/command"
 	"casher-server/internal/config"
+	"casher-server/internal/message"
 	"casher-server/internal/muxhttp/mw"
-	"casher-server/internal/queue"
 	"casher-server/internal/server/router"
 	v1 "casher-server/internal/server/router/api/v1"
 	"casher-server/internal/server/router/frontend"
@@ -36,11 +36,11 @@ type Server struct {
 	Store             *store.Store
 	Lager             *zap.Logger
 	Cache             *cache.Cache
-	Actor             *queue.ActorPool
+	Actor             message.IMessager
 	WsProxy           *wrpc.WSProxy
 }
 
-func NewServer(ctx context.Context, opt *config.Profile, store *store.Store, lager *zap.Logger, cache *cache.Cache, actorPool *queue.ActorPool, wsProxy *wrpc.WSProxy) (*Server, error) {
+func NewServer(ctx context.Context, opt *config.Profile, store *store.Store, lager *zap.Logger, cache *cache.Cache, actorPool message.IMessager, wsProxy *wrpc.WSProxy) (*Server, error) {
 	s := &Server{
 		Profile: opt,
 		Store:   store,
