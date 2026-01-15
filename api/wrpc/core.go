@@ -41,13 +41,6 @@ type WSProxy struct {
 
 func (p *WSProxy) CallClient(ctx context.Context, userId int64, method string, params ...any) ([]byte, error) {
 	header := p.ServerHeader.Clone()
-	// sign, norm, ts, err := p.Sign(header)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// header.Set("ts", ts)
-	// header.Set("sign", string(sign))
-	// header.Set("norm", norm)
 	header.Set("track_id", id.ShortID())
 	if p.ServerHeader != nil {
 		return p.Server.CallWithHeader(ctx, header, userId, method, params...)

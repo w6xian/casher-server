@@ -3,8 +3,9 @@ package store
 import (
 	"casher-server/api/wrpc"
 	"casher-server/internal/config"
-	"casher-server/internal/message"
+	"casher-server/internal/muxhttp"
 	"context"
+	"time"
 
 	"github.com/louis-xie-programmer/go-local-cache/cache"
 	"github.com/w6xian/sqlm"
@@ -16,17 +17,15 @@ type Store struct {
 	driver  Driver
 	lager   *zap.Logger
 	cache   *cache.Cache
-	actor   message.IMessager
 	WsProxy *wrpc.WSProxy
 }
 
-func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, actorPool message.IMessager, wsProxy *wrpc.WSProxy) (*Store, error) {
+func New(driver Driver, opt *config.Profile, lager *zap.Logger, cache *cache.Cache, wsProxy *wrpc.WSProxy) (*Store, error) {
 	store := &Store{
 		profile: opt,
 		driver:  driver,
 		lager:   lager,
 		cache:   cache,
-		actor:   actorPool,
 		WsProxy: wsProxy,
 	}
 	return store, nil
@@ -47,6 +46,14 @@ func (s *Store) CloseConnect(ctx context.Context) error {
 func (s *Store) Close() error {
 	// Stop all cache cleanup goroutines
 	return s.driver.Close()
+}
+
+func (s *Store) DbApiConnectWithClose(ctx context.Context) (context.Context, func()) {
+	reqId := time.Now().UnixNano()
+	ctx = context.WithValue(ctx, muxhttp.ContextKey("request_id"), reqId)
+	return s.driver.GetConnect(ctx), func() {
+		s.driver.CloseConnect(ctx)
+	}
 }
 
 func (s *Store) GetLink(ctx context.Context) sqlm.ITable {

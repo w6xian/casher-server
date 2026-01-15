@@ -1,7 +1,7 @@
 package store
 
 import (
-	"casher-server/internal/command"
+	"casher-server/internal/action"
 	"casher-server/internal/errors"
 	"context"
 	"encoding/json"
@@ -49,9 +49,9 @@ func (s *Store) NoticeNewOrder(ctx context.Context, req *WsReq) (*CallResp, erro
 	}
 	fmt.Println(cmd.String())
 	if req.UserId > 0 {
-		s.WsProxy.Channel(ctx, req.UserId, command.ACTION_NOTICE_ORDER, cmd.String())
+		s.WsProxy.Channel(ctx, req.UserId, action.NOTICE_ORDER, cmd.String())
 	} else {
-		s.WsProxy.Room(ctx, shop.Id, command.ACTION_NOTICE_ORDER, cmd.String())
+		s.WsProxy.Room(ctx, shop.Id, action.NOTICE_ORDER, cmd.String())
 	}
 	resp := &CallResp{}
 	return resp, nil

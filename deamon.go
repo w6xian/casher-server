@@ -111,7 +111,7 @@ func (p *Deamon) run(s service.Service) {
 	})
 
 	// 创建 Actor 池
-	actor := kueue.NewQueue("testpool", "127.0.0.1:4161")
+	actor := kueue.NewQueue("CASH_SERVER_QUEUE", "127.0.0.1:4161")
 
 	wsProxy := &wrpc.WSProxy{
 		Server: sLogic,
@@ -121,16 +121,18 @@ func (p *Deamon) run(s service.Service) {
 		Driver: dbDriver,
 	}
 
-	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, actor, wsProxy)
+	storeInstance, err := store.New(dbDriver, p.Profile, logger, m, wsProxy)
 	if err != nil {
 		panic(err)
 	}
 	if err = storeInstance.Migrate(ctx); err != nil {
 		panic(err)
 	}
-	queueCmd := command.NewQueueCommand(ctx, p.Profile, logger, m)
+	queueCmd := command.NewQueueCommand(ctx, p.Profile, storeInstance, logger, m, wsProxy)
 	actor.Handler(queueCmd)
-
+	if err = actor.Start(); err != nil {
+		panic(err)
+	}
 	// 初始化用户认证
 
 	svr, sErr := server.NewServer(ctx, p.Profile, storeInstance, logger, m, actor, wsProxy)
@@ -138,19 +140,10 @@ func (p *Deamon) run(s service.Service) {
 		panic(sErr)
 	}
 
-	// go func() {
-	// 	handler := NewHandler(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
-	// 	wsServerApi := wsfuns.NewWsServerApi(p.Profile, logger, storeInstance, p.Profile.Apps.Language)
-	// 	newConnect := sloth.ServerConn(wsLogic)
-	// 	newConnect.RegisterRpc("v1", wsServerApi, "")
-	// 	newConnect.Listen("tcp", p.Profile.Server.WsAddr,
-	// 		wsocket.WithServerHandle(handler),
-	// 	)
-	// }()
-
 	go func() {
 		rpc.InitLogicRpcServer(p.Context, p.Profile, logger, storeInstance, m, actor)
 	}()
+
 	// _ = svr
 	if err := svr.Start(ctx, queueCmd); err != nil {
 		fmt.Println("failed to start server", "error", err)

@@ -12,3 +12,9 @@ type Message struct {
 	Data    any    `json:"data"`
 	Tracker any    `json:"tracker"`
 }
+
+type ActorMessage struct {
+	Id     string `json:"id"`
+	Action Action `json:"action"`
+	Data   []byte `json:"data"`
+}

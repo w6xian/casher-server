@@ -19,7 +19,7 @@ func NewQueue(topic string, addr string) *Kueue {
 
 // channel
 func (k *Kueue) Channel() string {
-	return "sensor01"
+	return "MAIN"
 }
 
 func (k *Kueue) Start() error {
@@ -29,6 +29,9 @@ func (k *Kueue) Start() error {
 		return err
 	}
 	consumer.AddHandler(k.handler)
+	if err = consumer.ConnectToNSQLookupds([]string{k.addr}); err != nil {
+		return err
+	}
 	return nil
 }
 
