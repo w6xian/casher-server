@@ -44,14 +44,18 @@ func (s *WsServerApi) Login(ctx context.Context, req string) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("bucket not found")
 	}
+
 	//根据data登录 解析出userId,roomId,token
 	auth := nrpc.AuthInfo{
 		UserId: authInfo.UserId,
 		RoomId: authInfo.ShopId,
 		Token:  id.ShortID(),
 	}
+	if auth.UserId != ch.UserId() {
+		svr.Bucket(ch.UserId()).DeleteChannel(ch)
+	}
+	// 确保bucket存在.userId对应，才能在调用时找到UserId
 	lerr := svr.Bucket(auth.UserId).Put(auth.UserId, auth.RoomId, auth.Token, ch)
-
 	if lerr != nil {
 		return nil, lerr
 	}

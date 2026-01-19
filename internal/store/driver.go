@@ -67,4 +67,12 @@ type Driver interface {
 	// 授权信息
 	GetAuthInfo(link sqlm.ITable, mchId, apiKey string) (*AuthInfo, error)
 	GetAuthInfoByIds(link sqlm.ITable, shopId, userId int64) (*AuthInfo, error)
+
+	// 同步表
+	SyncTables(link sqlm.ITable) ([]*SyncTableRow, error)
+	SyncTableCreate(link sqlm.ITable, tableName string) (*SyncTableRow, error)
+	// 同步查询表数据
+	SyncTableUpdate(link sqlm.ITable, tableName string, lastId int64, lastTime int64) ([]byte, error)
+	// 同步表数据
+	SyncTableData(link sqlm.ITable, tableName string, lastId int64) ([]byte, error)
 }

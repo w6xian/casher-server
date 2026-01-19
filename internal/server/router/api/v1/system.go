@@ -49,12 +49,12 @@ func (v *Api) SystemInfo(w http.ResponseWriter, req *http.Request) ([]byte, erro
 	if err != nil {
 		return nil, muxhttp.NewErr(err)
 	}
-	resp.AppId = reqData.AppId
-	// 增加签名
-	err = store.SetSign(resp, reqData.AppId)
-	if err != nil {
-		return nil, muxhttp.NewErr(err)
-	}
+	// resp.AppId = reqData.AppId
+	// // 增加签名
+	// err = store.SetSign(resp, reqData.AppId)
+	// if err != nil {
+	// 	return nil, muxhttp.NewErr(err)
+	// }
 
 	return muxhttp.NewRiskData(resp).ToBytes()
 }

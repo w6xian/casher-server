@@ -110,7 +110,7 @@ func (p *Deamon) run(s service.Service) {
 		TotalMaxBytes: 1 << 20,
 	})
 
-	// 创建 Actor 池
+	// 创建 Nsq 池
 	actor := kueue.NewQueue("CASH_SERVER_QUEUE", "127.0.0.1:4161")
 
 	wsProxy := &wrpc.WSProxy{

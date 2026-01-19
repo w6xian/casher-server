@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 )
 
 type SystemReq struct {
@@ -20,11 +19,26 @@ func (c *SystemReq) Validate() error {
 type SystemResp struct {
 	APIReq
 	Data string `json:"data"`
+	// 在线用户数
+	Online int64 `json:"online"`
+	// bucket 数
+	Buckets int64 `json:"buckets"`
+	// 队列数
+	Queues int64 `json:"queues"`
+	// room 数
+	Rooms int64 `json:"rooms"`
 }
 
 func (s *Store) SystemInfo(ctx context.Context, req *SystemReq) (*SystemResp, error) {
 	// 有多少人在线
 	resp := &SystemResp{}
-	resp.Data = fmt.Sprintf("online: %d", 2)
+	svr := s.WsProxy.Server.Serve
+	prof, err := svr.PProf(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Buckets = prof.Buckets
+	resp.Queues = prof.Connects
+	resp.Rooms = int64(len(prof.Rooms))
 	return resp, nil
 }

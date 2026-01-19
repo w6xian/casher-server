@@ -66,9 +66,10 @@ func RsaDecrypt(encrypted []byte, privateKey []byte) ([]byte, error) {
 }
 
 type APIReq struct {
-	AppId string `json:"app_id"`
-	Sign  string `json:"sign"`
-	Ts    int64  `json:"ts"`
+	// 没有值，就不输出
+	AppId string `json:"app_id,omitempty"`
+	Sign  string `json:"sign,omitempty"`
+	Ts    int64  `json:"ts,omitempty"`
 }
 
 // 实现 IDecrypt

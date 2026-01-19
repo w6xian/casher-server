@@ -30,7 +30,8 @@ func NewHandler(profile *config.Profile, logger *zap.Logger, store *store.Store,
 
 // OnClose implements wsocket.IServerHandleMessage.
 func (h *Handler) OnClose(ctx context.Context, s *wsocket.WsServer, ch bucket.IChannel) error {
-	fmt.Println("OnClose")
+
+	fmt.Println("OnClose:", time.Now().UnixNano())
 	return nil
 }
 

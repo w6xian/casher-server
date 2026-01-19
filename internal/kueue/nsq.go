@@ -25,6 +25,7 @@ func (k *Kueue) Channel() string {
 func (k *Kueue) Start() error {
 	cfg := nsq.NewConfig()
 	consumer, err := nsq.NewConsumer(k.topic, k.Channel(), cfg)
+	consumer.SetLoggerLevel(nsq.LogLevelError)
 	if err != nil {
 		return err
 	}
