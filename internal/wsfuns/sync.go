@@ -36,7 +36,7 @@ func (s *WsServerApi) SyncTables(ctx context.Context, req []byte) ([]byte, error
 	return tlv.JsonEnpack(resp)
 }
 
-func (s *WsServerApi) SyncTableCreate(ctx context.Context, tableName string) ([]byte, error) {
+func (s *WsServerApi) SyncTableCreate(ctx context.Context, tableName string, proto string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	ctx, close := s.Start(ctx)
@@ -55,7 +55,7 @@ func (s *WsServerApi) SyncTableCreate(ctx context.Context, tableName string) ([]
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.Store.SyncTableCreate(ctx, tracker, tableName)
+	resp, err := s.Store.SyncTableCreate(ctx, tracker, tableName, proto)
 	if err != nil {
 		return nil, err
 	}

@@ -19,7 +19,7 @@ func (db *DB) SyncTables(link sqlm.ITable) ([]*store.SyncTableRow, error) {
 	rows.ScanMulti(&syncRows)
 	return syncRows, nil
 }
-func (db *DB) SyncTableCreate(link sqlm.ITable, tableName string) (*store.SyncTableRow, error) {
+func (db *DB) SyncTableCreate(link sqlm.ITable, tableName string, proto string) (*store.SyncTableRow, error) {
 	row, err := link.Table("sync_tables").
 		Select("id", "pragma_data").
 		Where("name ='%s'", tableName).

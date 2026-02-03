@@ -70,7 +70,7 @@ type Driver interface {
 
 	// 同步表
 	SyncTables(link sqlm.ITable) ([]*SyncTableRow, error)
-	SyncTableCreate(link sqlm.ITable, tableName string) (*SyncTableRow, error)
+	SyncTableCreate(link sqlm.ITable, tableName string, proto string) (*SyncTableRow, error)
 	// 同步查询表数据
 	SyncTableUpdate(link sqlm.ITable, tableName string, lastId int64, lastTime int64) ([]byte, error)
 	// 同步表数据

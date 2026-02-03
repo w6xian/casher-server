@@ -35,7 +35,7 @@ func (s *Store) SyncTables(ctx context.Context, tracker *lager.Tracker) ([]*Sync
 	return tables, nil
 }
 
-func (s *Store) SyncTableCreate(ctx context.Context, tracker *lager.Tracker, tableName string) (*SyncTableRow, error) {
+func (s *Store) SyncTableCreate(ctx context.Context, tracker *lager.Tracker, tableName string, proto string) (*SyncTableRow, error) {
 	// 1 日志
 	log := lager.FromContext(ctx)
 	defer log.Sync()
@@ -46,7 +46,7 @@ func (s *Store) SyncTableCreate(ctx context.Context, tracker *lager.Tracker, tab
 	db := s.GetDriver()
 	// 2.2 语言
 	// 3 查询订单信息
-	res, err := db.SyncTableCreate(link, tableName)
+	res, err := db.SyncTableCreate(link, tableName, proto)
 	if err != nil {
 		log.ErrorExit("SyncTableCreate Query err", err)
 		return nil, tracker.Error("msg_sync_table_create_err", err.Error())
