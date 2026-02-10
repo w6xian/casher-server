@@ -27,7 +27,7 @@ require (
 	github.com/smallnest/rpcx v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.1
-	github.com/w6xian/sloth v0.2.4
+	github.com/w6xian/sloth v0.2.5
 	github.com/w6xian/sqlm v0.1.0
 	github.com/w6xian/tlv v0.0.4
 	go.elastic.co/ecszap v1.0.3
